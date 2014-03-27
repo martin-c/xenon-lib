@@ -19,3 +19,7 @@
 
 # AVR-GCC output
 *.lst
+
+# local embedded-device file
+embedded-device.h
+
