@@ -116,3 +116,41 @@ int8_t down_trylock(struct semaphore_s *sem)
     return 0;
 }
 
+/* Initialize a resource counter.
+ * \param rsc Pointer to resource counter to initialize.
+ * \param value Initial value of resource counter.
+ */
+void rsc_count_init(struct rsc_count_s *rsc, uint8_t value)
+{
+    rsc->count = value;
+}
+
+/* Increase a resource counter.
+ * \param rsc Pointer to resource counter to increase.
+ */
+void count_up(struct rsc_count_s *rsc)
+{
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        rsc->count++;
+    }
+}
+
+/* Decrease a resource counter.
+ * \param rsc Pointer to resource counter to decrease.
+ */
+void count_down(struct rsc_count_s *rsc)
+{
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        rsc->count--;
+    }
+}
+
+/* Test a resource counter for empty count.
+ * \param rsc Pointer to resource counter to test.
+ */
+uint8_t count_empty(struct rsc_count_s *rsc)
+{
+    return (rsc->count == 0);
+}
+
+

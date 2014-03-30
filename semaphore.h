@@ -37,11 +37,21 @@ struct semaphore_s {
     volatile uint8_t count;
 };
 
+struct rsc_count_s {
+    volatile uint8_t count;
+};
+
 
 
 /***            Public Functions            ***/
+// counting semaphore functions
 void sem_init(struct semaphore_s *sem, uint8_t value);
 void up(struct semaphore_s *sem);
 void down(struct semaphore_s *sem);
 int8_t down_trylock(struct semaphore_s *sem);
+// resource count functions, 'inverse' semaphore
+void rsc_count_init(struct rsc_count_s *rsc, uint8_t value);
+void count_up(struct rsc_count_s *rsc);
+void count_down(struct rsc_count_s *rsc);
+uint8_t count_empty(struct rsc_count_s *rsc);
 
