@@ -31,6 +31,12 @@
  * there's some limitations to what we can implement here. Basically only the core
  * sem_init(), up(), down(), and down_trylock() functions are implemented at this point.
  *
+ * The concept of 'inverse' semaphores which can be used to implement a resource counter
+ * is also considered. Since this code is very similar in use and implementation to the
+ * semaphore implementation, it is also included in this module. The rsc_init() function
+ * initializes a resource counter, claim() increases the resource count, release() decreases
+ * the resource count, and rsc_released() returns 1 only if all claim() calls have also had
+ * a release() call, ie the resource count == 0.
  */
 
 #include "semaphore.h"
@@ -120,35 +126,36 @@ int8_t down_trylock(struct semaphore_s *sem)
  * \param rsc Pointer to resource counter to initialize.
  * \param value Initial value of resource counter.
  */
-void rsc_count_init(struct rsc_count_s *rsc, uint8_t value)
+void rsc_init(struct rsc_count_s *rsc, uint8_t value)
 {
     rsc->count = value;
 }
 
-/* Increase a resource counter.
+/* Claim a resource, increases resource counter.
  * \param rsc Pointer to resource counter to increase.
  */
-void count_up(struct rsc_count_s *rsc)
+void claim(struct rsc_count_s *rsc)
 {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
         rsc->count++;
     }
 }
 
-/* Decrease a resource counter.
+/* Release a resource, decreases resource counter.
  * \param rsc Pointer to resource counter to decrease.
  */
-void count_down(struct rsc_count_s *rsc)
+void release(struct rsc_count_s *rsc)
 {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        rsc->count--;
+        rsc->count = (rsc->count > 0) ? rsc->count - 1 : 0;
     }
 }
 
-/* Test a resource counter for empty count.
+/* Test a resource counter for empty count, only true if all
+ * calls to 'claim' have been followed by call to 'release'.
  * \param rsc Pointer to resource counter to test.
  */
-uint8_t count_empty(struct rsc_count_s *rsc)
+uint8_t rsc_released(struct rsc_count_s *rsc)
 {
     return (rsc->count == 0);
 }
