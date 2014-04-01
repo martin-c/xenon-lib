@@ -48,7 +48,7 @@ struct rsc_count_s {
 void sem_init(struct semaphore_s *sem, uint8_t value);
 void up(struct semaphore_s *sem);
 void down(struct semaphore_s *sem);
-int8_t down_trylock(struct semaphore_s *sem);
+uint8_t down_trylock(struct semaphore_s *sem);
 // resource counter functions, 'inverse' semaphore
 void rsc_init(struct rsc_count_s *rsc, uint8_t value);
 void claim(struct rsc_count_s *rsc);

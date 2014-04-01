@@ -109,17 +109,17 @@ void down(struct semaphore_s *sem)
 
 /* Try to acquire a Semaphore.
  * \param sem Pointer to semaphore to try to acquire.
- * \return Function returns 0 if semaphore was acquired, -1 if not.
+ * \return Function returns 1 if semaphore was acquired, 0 if not.
  */
-int8_t down_trylock(struct semaphore_s *sem)
+uint8_t down_trylock(struct semaphore_s *sem)
 {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
         if (sem->count == 0) {
-            return -1;
+            return 0;
         }
         sem->count--;
     }
-    return 0;
+    return 1;
 }
 
 /* Initialize a resource counter.
