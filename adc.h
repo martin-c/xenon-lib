@@ -29,22 +29,20 @@
 
 #include <inttypes.h>
 #include <avr/io.h>
+#include "semaphore.h"
+
 
 
 /***        Public Variables            ***/
 
-/*! ADC channel accumulator state flags */
-enum adcChAccState_e {
-    ADC_CH0_READY   = 1<<0,     ///< ADC Channel 0 accumulator ready for read
-    ADC_CH1_READY   = 1<<1,     ///< ADC Channel 1 accumulator ready for read
-    ADC_CH2_READY   = 1<<2,     ///< ADC Channel 2 accumulator ready for read
-    ADC_CH3_READY   = 1<<3,     ///< ADC Channel 3 accumulator ready for read
-};
-
-/*! Accumulator ready flags, set by ADC channel ISR when desired number of samples are in
- *  ADC channel accumulator.
+/* Double-buffered accumulator for each ADC channel used.
  */
-extern volatile enum adcChAccState_e adcChAccReadyF;
+struct adcChanBuffer_s {
+    volatile int16_t _acc[2];
+    volatile int16_t *_act;
+    volatile uint8_t _rc;
+    uint8_t _sc;
+};
 
 /*! ADC voltage reference configuration enum */
 enum adcVoltageRef_e {
@@ -67,28 +65,41 @@ enum adcClkPrescale_e {
 };
 
 /*! ADC channel interrupt configuration enum */
-enum adcChanInterrupt_e {
+enum adcChanIntLevel_e {
     ADC_CH_INT_OFF  = ADC_CH_INTLVL_OFF_gc,
     ADC_CH_INT_LO   = ADC_CH_INTLVL_LO_gc,
     ADC_CH_INT_MED  = ADC_CH_INTLVL_MED_gc,
     ADC_CH_INT_HI   = ADC_CH_INTLVL_HI_gc,
 };
 
+/*! ADC channel start conversion mask
+ */
+enum adcStartConversion_e {
+    ADC_CH_0_START  = (1<<2),
+    ADC_CH_1_START  = (1<<3),
+    ADC_CH_2_START  = (1<<4),
+    ADC_CH_3_START  = (1<<5),
+};
+
 
 
 /***        Public Functions            ***/
-//void initAdc(void);
-void adcInitSingleShot(enum adcVoltageRef_e vref,
-                       enum adcClkPrescale_e ps);
 
-void adcInitChannelDiffNoGain(ADC_CH_t *ch,
-                              enum adcChanInterrupt_e chInt,
-                              uint8_t muxPos,
-                              uint8_t muxNeg);
+void adcInitSingleShot(struct ADC_struct *adc,
+        enum adcVoltageRef_e vref,
+        enum adcClkPrescale_e prescale);
 
-void adcEnable(void);
-void adcDisable(void);
-void adcStartConversion(uint8_t ch);
-uint8_t adcGetResultCh0_8(void);
-uint8_t adcGetResultCh1_8(void);
-int16_t adcGetAccumulator(uint8_t ch);
+void adcInitChannelDiffNoGain(struct ADC_CH_struct *ch,
+        struct adcChanBuffer_s *buf,
+        struct semaphore_s *sem,
+        uint8_t samples,
+        enum adcChanIntLevel_e int_lvl,
+        uint8_t muxPos,
+        uint8_t muxNeg);
+
+void adcEnable(struct ADC_struct *adc);
+void adcDisable(struct ADC_struct *adc);
+void adcStartConversion(struct ADC_struct *adc, enum adcChanIntLevel_e ch_mask);
+int16_t adcGetAccumulator(struct adcChanBuffer_s *buf);
+
+

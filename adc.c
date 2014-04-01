@@ -23,199 +23,243 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
+ * This module contains functions for configuring and operating the XMEGA ADC.
+ * Each device has up to two ADCs, ADCA and ADCB, on the respective device ports.
+ * We only utilize ADCA in this module, but adding access to ADCB would be simple,
+ * see comments below.
+ * Each ADC is divided into 4 channels, and it is possible to configure each channel
+ * individually. On a programmatic level this module provides for each channel having
+ * its own double-buffered accumulator with semaphore controlled access.
+ * When a single ADC conversion is complete, an interrupt is generated and the conversion
+ * result is added to the active accumulator buffer. This process repeats until the
+ * desired sample count has been stored in the accumulator, and this condition automatically
+ * swaps buffers, resets the desired sample count, and posts the associated semaphore.
+ * The application then has until the next desired sample count is reached to retrieve
+ * the data stored in the first accumulator. If this is not accomplished before this time then
+ * the data in the accumulator will be overwritten, regardless of the semaphore state. In
+ * short: The driver only *posts* the semaphore, it ignores the state of the semaphore
+ * when writing data.
  */
 
 #include "adc.h"
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
-#include <string.h>
+#include <util/atomic.h>
+
 
 
 /***            Definitions             ***/
-
+/*! \privatesection */
 
 /***        Private Variables           ***/
-
-/* Buffered accumulator for each ADC channel, 256 signed 8 bit readings max.
- * Array size must match number of ADC channels in use.
+/* Pointers to track accumulator assigned to each of the 4 ADC channels for ADCA.
+ * Add adcb_acc array here if ADCB is used.
  */
-struct adcChanAcc_s {
-    int16_t a[2];   // buffered accumulator
-    uint8_t o;      // offset to determine whether primary or secondary accumulator is active
-    uint8_t count;  // read count for channel
-};
+static struct adcChanBuffer_s *adca_buf[4];
 
-/* One accumulator for each channel used */
-static volatile struct adcChanAcc_s adcChanAcc[2];
+/* Pointers to track semaphores assigned to each of the 4 ADC channels for ADCA.
+ * Add adcb_sem array here is ADCB is used.
+ */
+static struct semaphore_s *adca_sem[4];
 
 
 
 /***        Public Variables            ***/
-
-/* ADC channel ready state */
-volatile enum adcChAccState_e adcChAccReadyF;
+/*! \publicsection */
 
 
 
 /***        Private Functions           ***/
-static inline void updateAcc(volatile struct adcChanAcc_s *acc, int8_t adcReading, uint8_t rdyFlag);
-static void resetAcc(volatile struct adcChanAcc_s *acc);
+/*! \privatesection */
+static inline void update_buf(struct adcChanBuffer_s *buf, struct semaphore_s *sem, int8_t adc_result);
+static void reset_buf(struct adcChanBuffer_s *buf);
 
 
-
-/* Update ADC accumulator struct with new value
- *
+/* Update ADC accumulator struct with new value.
+ * If number of samples in accumulator has reached the desired sample count, swap buffers and post semaphore.
+ * Function is called from within interrupt context.
  */
-static inline void updateAcc(volatile struct adcChanAcc_s *acc, int8_t adcReading, uint8_t rdyFlag) {
-    
-    acc->a[acc->o] += adcReading;   // add 8 bit signed result to accumulator
-    if (++acc->count == 0) {
-        acc->o ^= 0x01;             // swap buffers if 256 readings have been collected
-        acc->a[acc->o] = 0;         // clear new accumulator
-        adcChAccReadyF |= rdyFlag;  // set channel ready flag
+static inline void update_buf(struct adcChanBuffer_s *buf, struct semaphore_s *sem, int8_t adc_result)
+{
+    // add ADC result to active accumulator
+    *buf->_act += adc_result;
+    // update remaining sample count
+    if (--buf->_rc == 0) {
+        // desired sample count reached
+        // swap accumulators
+        buf->_act = (buf->_act == &buf->_acc[0]) ? &buf->_acc[1] : &buf->_acc[0];
+        *buf->_act = 0;         // clear active accumulator
+        buf->_rc = buf->_sc;    // reset remaining sample count
+        up(sem);                // post semaphore
     }
 }
 
-static void resetAcc(volatile struct adcChanAcc_s *acc) {
-    memset((char *)acc->a, 0, sizeof acc->a);
-    acc->o = 0;
-    acc->count = 0;
+/* Reset a buffer.
+ * Sets active accumulator to first buffer, resets active accumulator to 0, and resets remaining sample count.
+ */
+static void reset_buf(struct adcChanBuffer_s *buf)
+{
+    buf->_act = buf->_acc;      // set first accumulator active
+    *buf->_act = 0;             // clear active accumulator
+    buf->_rc = buf->_sc;        // reset remaining sample count
 }
 
 
 
 /***                ISR                 ***/
-ISR(ADCA_CH0_vect) {
-    updateAcc(&adcChanAcc[0], (int8_t)ADCA.CH0.RESL, ADC_CH0_READY);
+
+/* Interrupts call the general update_buf() function with parameters specific to the ADC channel which
+ * generated the interrupt. If ADCB were to be used interrupt handlers for this ADC would need to be added
+ * here.
+ * Function calls assume ADC is in 8-bit signed mode.
+ */
+ISR(ADCA_CH0_vect)
+{
+    update_buf(adca_buf[0], adca_sem[0], (int8_t) ADCA.CH0.RESL);
 }
 
-ISR(ADCA_CH1_vect) {
-    updateAcc(&adcChanAcc[1], (int8_t)ADCA.CH1.RESL, ADC_CH1_READY);
-}
-/*
-ISR(ADCA_CH2_vect) {
-    updateAcc(&adcChanAcc[2], (int8_t)ADCA.CH2.RESL, ADC_CH2_READY);
+ISR(ADCA_CH1_vect)
+{
+    update_buf(adca_buf[1], adca_sem[1], (int8_t) ADCA.CH1.RESL);
 }
 
-ISR(ADCA_CH3_vect) {
-    updateAcc(&adcChanAcc[3], (int8_t)ADCA.CH3.RESL, ADC_CH3_READY);
+ISR(ADCA_CH2_vect)
+{
+    update_buf(adca_buf[2], adca_sem[2], (int8_t) ADCA.CH2.RESL);
 }
-*/
+
+ISR(ADCA_CH3_vect)
+{
+    update_buf(adca_buf[3], adca_sem[3], (int8_t) ADCA.CH3.RESL);
+}
+
 
 
 /***        Public Functions            ***/
+/*! \publicsection */
 
 /*! Initialize ADC for "single shot" reading mode - where a single reading is taken when
- *  adcStartConversion is called
+ *  adcStartConversion is called.\n
+ *  ADC is initialized in 8-bit mode. See XMEGA errata for reasons why 12-bit mode is not supported.
+ *  \param adc Pointer to ADC hardware peripheral, ADCA or ADCB. NOTE: Only ADCA is currently supported.
+ *  \param vref ADC reference voltage selection.
+ *  \param prescale ADC clock prescaler.
  */
-void adcInitSingleShot(enum adcVoltageRef_e vref,
-                       enum adcClkPrescale_e ps) {
-    
-    ADCA.CTRLB = ADC_CONMODE_bm | ADC_RESOLUTION_8BIT_gc;   // ADC signed mode, 8-bit resolution
-    ADCA.REFCTRL = vref;                                    // set ADC voltage reference
+void adcInitSingleShot(struct ADC_struct *adc,
+        enum adcVoltageRef_e vref,
+        enum adcClkPrescale_e prescale)
+{
+    adc->CTRLB = ADC_CONMODE_bm | ADC_RESOLUTION_8BIT_gc;   // ADC signed mode, 8-bit resolution
+    adc->REFCTRL = vref;                                    // set ADC voltage reference
     if (vref == ADC_VREF_INT1V) {
-        ADCA.REFCTRL |= ADC_BANDGAP_bm;                     // enable bandgap if necessary
+        adc->REFCTRL |= ADC_BANDGAP_bm;                     // enable bandgap if necessary
     }
-    ADCA.PRESCALER = ps;                                    // set ADC prescaler
-    NVM_CMD = NVM_CMD_READ_CALIB_ROW_gc;                    // load ADC claibration values
-    ADCA.CALL = pgm_read_byte(0x20);
-    ADCA.CALH = pgm_read_byte(0x21);
-    NVM_CMD = NVM_CMD_NO_OPERATION_gc;
+    adc->PRESCALER = prescale;                              // set ADC prescaler
+    // read ADC calibration values from NVM production signature row, store value in ADC calibration registers.
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        NVM_CMD = NVM_CMD_READ_CALIB_ROW_gc;                // load ADC calibration values
+        // get address of ADCACAL0, ADCACAL1
+        ADCA.CALL = pgm_read_byte(&((NVM_PROD_SIGNATURES_t *)0)->ADCACAL0);
+        ADCA.CALH = pgm_read_byte(&((NVM_PROD_SIGNATURES_t *)0)->ADCACAL1);
+        NVM_CMD = NVM_CMD_NO_OPERATION_gc;
+    }
 }
 
-/*! Initialize an ADC channel
- *
+/*! Initialize an ADC channel in differential mode with no gain.
+ *  \param ch Pointer to ADC channel to initialize. NOTE: only channels on ADCA are currently supported!
+ *  \param acc Pointer to buffer allocated for this channel.
+ *  \param sem Pointer to semaphore allocated for this channel.
+ *  \param samples Number of ADC conversions summed in accumulator before semaphore is posted. Set to 0 for 256 samples.
+ *  \param int_lvl Channel conversion complete interrupt level. ISR is used to update channel accumulator.
+ *  \param muxPos Positive input pin number. See table 25-12 in A3 datasheet. In this channel configuration
+ *   pin number maps directly to bit value.
+ *  \param muxNeg Negative input pin number. See table 25-14 in A3 datasheet. In this channel configuration
+ *   pin number maps directly to bit value.
  */
-void adcInitChannelDiffNoGain(ADC_CH_t *ch,
-                              enum adcChanInterrupt_e chInt,
-                              uint8_t muxPos,
-                              uint8_t muxNeg) {
-    
+void adcInitChannelDiffNoGain(struct ADC_CH_struct *ch,
+        struct adcChanBuffer_s *buf,
+        struct semaphore_s *sem,
+        uint8_t samples,
+        enum adcChanIntLevel_e int_lvl,
+        uint8_t muxPos,
+        uint8_t muxNeg)
+{
+    // compute channel number
+    uint8_t c;
+    if (ch == &ADCA.CH0) {
+        c = 0;
+    } else if (ch == &ADCA.CH1) {
+        c = 1;
+    } else if (ch == &ADCA.CH2) {
+        c = 2;
+    } else {
+        c = 3;
+    }
+    adca_buf[c] = buf;                          // set pointer to accumulator for ISR
+    adca_sem[c] = sem;                          // set pointer to semaphore for ISR
+    buf->_sc = samples;                         // set desired sample count
+    reset_buf(buf);                             // reset buffer
     ch->CTRL = ADC_CH_INPUTMODE_DIFF_gc;        // channel mode differential
-    ch->INTCTRL = chInt;                        // set interrupt level
-    ch->MUXCTRL = muxPos << 3 | muxNeg;
+    ch->INTCTRL = int_lvl;                      // set interrupt level
+    // set channel mux
+    ch->MUXCTRL = (muxPos & 0x0F) << 3 | (muxNeg & 0x03);
 }
 
-
-/*! Enable ADC\n
- *  Sets ADC enable bit and flushes ADC
+/*! Enable ADC. Sets ADC enable bit and flushes ADC.
+ *  Resets channel buffers for all initialized channels.
+ *  \param adc Pointer to ADC hardware peripheral, ADCA or ADCB. NOTE: Only ADCA is currently supported.
  */
-void adcEnable(void) {
-    
+void adcEnable(struct ADC_struct *adc)
+{
     uint8_t i;
-    
-    /* reset accumulators and status variables */
-    for (i = 0; i < sizeof adcChanAcc / sizeof adcChanAcc[0]; i++) {
-        resetAcc(&adcChanAcc[i]);
+
+    // reset accumulators and status variables for all channels
+    if (adc == &ADCA) {
+        for (i = 0; i < sizeof adca_buf / sizeof adca_buf[0]; i++) {
+            if (adca_buf[i] == 0) {
+                continue;                       // don't reset un-initialized channels
+            }
+            reset_buf(adca_buf[i]);
+        }
+    } else {
+        // same init but for ADCB goes here */
     }
-    /* flush and enable ADC */
-    ADCA.CTRLA |= ADC_FLUSH_bm | ADC_ENABLE_bm;
+    // flush and enable ADC
+    adc->CTRLA |= ADC_FLUSH_bm | ADC_ENABLE_bm;
 }
 
-
-
-/*! Disable ADC\n
- *  Clears ADC enable bit\n
- *  Note: any pending conversions are not cleared and will resume when ADC is enabled
+/*! Disable ADC. Clears ADC enable bit\n
+ *  Note: any pending conversions are not cleared and will resume when ADC is enabled.
+ *  \param adc Pointer to ADC hardware peripheral, ADCA or ADCB. NOTE: Only ADCA is currently supported.
  */
-void adcDisable(void) {
-    
-    ADCA.CTRLA &= ~(ADC_ENABLE_bm);
+void adcDisable(struct ADC_struct *adc)
+{
+    adc->CTRLA &= ~(ADC_ENABLE_bm);
 }
-
-
 
 /*! Start ADC conversion for channel specified\n
- *  Specifiing multiple channels will start a sweep. ADC must be previously enabled.
- *  \param ch Bitmask of channel to start:\n
- *  bit 0 -> channel 0\n bit 1 -> channel 1\n bit 2 -> channel 2\n bit 3 -> channel 3\n
+ *  Specifying multiple channels will start a sweep. ADC must be previously initialized and enabled, and channel(s)
+ *  must be initialized and enabled.
+ *  \param adc Pointer to ADC hardware peripheral, ADCA or ADCB. NOTE: Only ADCA is currently supported.
+ *  \param ch_mask ADC start conversion channel mask.
  */
-void adcStartConversion(uint8_t ch) {
-    
-    if (ch > 3) {
-        return;
-    }
-    ADCA.CTRLA |= (0x01 << (ch + 2));    // set conversion start bits
+void adcStartConversion(struct ADC_struct *adc, enum adcChanIntLevel_e ch_mask)
+{
+    adc->CTRLA |= ch_mask;              // set conversion start bits
 }
 
-
-
-/*! Get 8 bit signed ADC result
- *  \return 8 bit signed CH0 result
+/*! Get signed ADC accumulator value.
+ *  Function should only be called after channel semaphore posts. Semaphore may be acquired before or after
+ *  function is called since accumulator is double-buffered.
+ *  \param buf Channel buffer.
+ *  \return Signed channel accumulator value.
  */
-uint8_t adcGetResultCh0_8(void) {
-    
-    return ADCA.CH0.RESL;
+int16_t adcGetAccumulator(struct adcChanBuffer_s *buf)
+{
+    volatile int16_t *acc;      // accumulator to return
+
+    // select the non-active buffer
+    acc = (buf->_act == &buf->_acc[0]) ? &buf->_acc[1] : &buf->_acc[0];
+    return *acc;    // return accumulator value
 }
-
-
-
-/*! Get 8 bit signed ADC result
- *  \return 8 bit signed CH1 result
- */
-uint8_t adcGetResultCh1_8(void) {
-    
-    return ADCA.CH1.RESL;
-}
-
-
-
-/*! Get 16 bit signed ADC accumulator for channel specified.\n
- *  Function returns the buffered ADC accumulator value.
- *  Should be called after ADC_CHx_READY flag is set by interrupt routine.
- *  Function clears ADC_CHx_READY flag.
- *  \param ch ADC Channel.
- *  \return 16 bit signed accumulator value
- */
-int16_t adcGetAccumulator(uint8_t ch) {
-    
-    if (ch >= sizeof adcChanAcc / sizeof adcChanAcc[0]) {
-        return 0;   // unsupported ch number
-    }
-    adcChAccReadyF &= ~(0x01 << ch);                // clear ADC_CHx_READY flag
-    // return accumulator value of inactive buffer
-    return adcChanAcc[ch].a[ adcChanAcc[ch].o ^ 0x01 ];
-}
-
-
 
