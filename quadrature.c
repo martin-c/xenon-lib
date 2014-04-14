@@ -67,8 +67,8 @@
 /*! Initialize quadrature decoder using event channel 0 and TCC1
  *
  */
-void quadratureInit(void) {
-    
+void quadratureInit(void)
+{
     // configure pins
     PORTA.PIN3CTRL = PORT_OPC_PULLUP_gc | PORT_ISC_LEVEL_gc;    // enable pull-up, low level sense
     PORTA.PIN4CTRL = PORT_OPC_PULLUP_gc | PORT_ISC_LEVEL_gc;
@@ -83,8 +83,8 @@ void quadratureInit(void) {
 /*! Enable quardrature decoder, enable encoder power
  *
  */
-void quadratureEnable(void) {
-    
+void quadratureEnable(void)
+{
     ENCODER_POWERUP;
     // enable timer/counter C1
     TCC1.CTRLA = TC_CLKSEL_DIV1_gc;
@@ -93,8 +93,8 @@ void quadratureEnable(void) {
 /*! Disable quadrature decoder, shut down encoder power
  *
  */
-void quadratureDisable(void) {
-    
+void quadratureDisable(void)
+{
     // disable timer/counter C1
     TCC1.CTRLA = TC_CLKSEL_OFF_gc;
     ENCODER_POWERDOWN;

@@ -60,166 +60,210 @@ static inline void bufferedRx(struct usartIo_s *io);
  */
 #if USARTC0_RXC_vect_num > 0
 static struct usartIo_s *usartC0_io;
-ISR(USARTC0_DRE_vect) {
+ISR(USARTC0_DRE_vect)
+{
     bufferedTx(usartC0_io);
 }
-ISR(USARTC0_RXC_vect) {
+ISR(USARTC0_RXC_vect)
+{
     bufferedRx(usartC0_io);
 }
-ISR(USARTC0_TXC_vect) {
+ISR(USARTC0_TXC_vect)
+{
     usartC0_io->txcIsr();
 }
-static uint8_t usartC0_txComplete(device_t *d) {
+static uint8_t usartC0_txComplete(device_t *d)
+{
     return (usartC0_io->isr.tx.count == 0) ? 1 : 0;
 }
-static uint8_t usartC0_rxComplete(device_t *d) {
+static uint8_t usartC0_rxComplete(device_t *d)
+{
     return (usartC0_io->isr.rx.count == 0) ? 1 : 0;
 }
 #endif
 
 #if USARTC1_RXC_vect_num > 0
 static struct usartIo_s *usartC1_io;
-ISR(USARTC1_DRE_vect) {
+ISR(USARTC1_DRE_vect)
+{
     bufferedTx(usartC1_io);
 }
-ISR(USARTC1_RXC_vect) {
+ISR(USARTC1_RXC_vect)
+{
     bufferedRx(usartC1_io);
 }
-ISR(USARTC1_TXC_vect) {
+ISR(USARTC1_TXC_vect)
+{
     usartC1_io->txcIsr();
 }
-static uint8_t usartC1_txComplete(device_t *d) {
+static uint8_t usartC1_txComplete(device_t *d)
+{
     return (usartC1_io->isr.tx.count == 0) ? 1 : 0;
 }
-static uint8_t usartC1_rxComplete(device_t *d) {
+static uint8_t usartC1_rxComplete(device_t *d)
+{
     return (usartC1_io->isr.rx.count == 0) ? 1 : 0;
 }
 #endif
 
 #if USARTD0_RXC_vect_num > 0
 static struct usartIo_s *usartD0_io;
-ISR(USARTD0_DRE_vect) {
+ISR(USARTD0_DRE_vect)
+{
     bufferedTx(usartD0_io);
 }
-ISR(USARTD0_RXC_vect) {
+ISR(USARTD0_RXC_vect)
+{
     bufferedRx(usartD0_io);
 }
-ISR(USARTD0_TXC_vect) {
+ISR(USARTD0_TXC_vect)
+{
     usartD0_io->txcIsr();
 }
-static uint8_t usartD0_txComplete(device_t *d) {
+static uint8_t usartD0_txComplete(device_t *d)
+{
     return (usartD0_io->isr.tx.count == 0) ? 1 : 0;
 }
-static uint8_t usartD0_rxComplete(device_t *d) {
+static uint8_t usartD0_rxComplete(device_t *d)
+{
     return (usartD0_io->isr.rx.count == 0) ? 1 : 0;
 }
 #endif
 
 #if USARTD1_RXC_vect_num > 0
 static struct usartIo_s *usartD1_io;
-ISR(USARTD1_DRE_vect) {
+ISR(USARTD1_DRE_vect)
+{
     bufferedTx(usartD1_io);
 }
-ISR(USARTD1_RXC_vect) {
+ISR(USARTD1_RXC_vect)
+{
     bufferedRx(usartD1_io);
 }
-ISR(USARTD1_TXC_vect) {
+ISR(USARTD1_TXC_vect)
+{
     usartD1_io->txcIsr();
 }
-static uint8_t usartD1_txComplete(device_t *d) {
+static uint8_t usartD1_txComplete(device_t *d)
+{
     return (usartD1_io->isr.tx.count == 0) ? 1 : 0;
 }
-static uint8_t usartD1_rxComplete(device_t *d) {
+static uint8_t usartD1_rxComplete(device_t *d)
+{
     return (usartD1_io->isr.rx.count == 0) ? 1 : 0;
 }
 #endif
 
 #if USARTE0_RXC_vect_num > 0
 static struct usartIo_s *usartE0_io;
-ISR(USARTE0_DRE_vect) {
+ISR(USARTE0_DRE_vect)
+{
     bufferedTx(usartE0_io);
 }
-ISR(USARTE0_RXC_vect) {
+ISR(USARTE0_RXC_vect)
+{
     bufferedRx(usartE0_io);
 }
-ISR(USARTE0_TXC_vect) {
+ISR(USARTE0_TXC_vect)
+{
     usartE0_io->txcIsr();
 }
-static uint8_t usartE0_txComplete(device_t *d) {
+static uint8_t usartE0_txComplete(device_t *d)
+{
     return (usartE0_io->isr.tx.count == 0) ? 1 : 0;
 }
-static uint8_t usartE0_rxComplete(device_t *d) {
+static uint8_t usartE0_rxComplete(device_t *d)
+{
     return (usartE0_io->isr.rx.count == 0) ? 1 : 0;
 }
 #endif
 
 #if USARTE1_RXC_vect_num > 0
 static struct usartIo_s *usartE1_io;
-ISR(USARTE1_DRE_vect) {
+ISR(USARTE1_DRE_vect)
+{
     bufferedTx(usartE1_io);
 }
-ISR(USARTE1_RXC_vect) {
+ISR(USARTE1_RXC_vect)
+{
     bufferedRx(usartE1_io);
 }
-ISR(USARTE1_TXC_vect) {
+ISR(USARTE1_TXC_vect)
+{
     usartE1_io->txcIsr();
 }
-static uint8_t usartE1_txComplete(device_t *d) {
+static uint8_t usartE1_txComplete(device_t *d)
+{
     return (usartE1_io->isr.tx.count == 0) ? 1 : 0;
 }
-static uint8_t usartE1_rxComplete(device_t *d) {
+static uint8_t usartE1_rxComplete(device_t *d)
+{
     return (usartE1_io->isr.rx.count == 0) ? 1 : 0;
 }
 #endif
 
 #if USARTF0_RXC_vect_num > 0
 static struct usartIo_s *usartF0_io;
-ISR(USARTF0_DRE_vect) {
+ISR(USARTF0_DRE_vect)
+{
     bufferedTx(usartF0_io);
 }
-ISR(USARTF0_RXC_vect) {
+ISR(USARTF0_RXC_vect)
+{
     bufferedRx(usartF0_io);
 }
-ISR(USARTF0_TXC_vect) {
+ISR(USARTF0_TXC_vect)
+{
     usartF0_io->txcIsr();
 }
-static uint8_t usartF0_txComplete(device_t *d) {
+static uint8_t usartF0_txComplete(device_t *d)
+{
     return (usartF0_io->isr.tx.count == 0) ? 1 : 0;
 }
-static uint8_t usartF0_rxComplete(device_t *d) {
+static uint8_t usartF0_rxComplete(device_t *d)
+{
     return (usartF0_io->isr.rx.count == 0) ? 1 : 0;
 }
 #endif
 
 #if USARTF1_RXC_vect_num > 0
 static struct usartIo_s *usartF1_io;
-ISR(USARTF1_DRE_vect) {
+ISR(USARTF1_DRE_vect)
+{
     bufferedTx(usartF1_io);
 }
-ISR(USARTF1_RXC_vect) {
+ISR(USARTF1_RXC_vect)
+{
     bufferedRx(usartF1_io);
 }
-ISR(USARTF1_TXC_vect) {
+ISR(USARTF1_TXC_vect)
+{
     usartF1_io->txcIsr();
 }
-static uint8_t usartF1_txComplete(device_t *d) {
+static uint8_t usartF1_txComplete(device_t *d)
+{
     return (usartF1_io->isr.tx.count == 0) ? 1 : 0;
 }
-static uint8_t usartF1_rxComplete(device_t *d) {
+static uint8_t usartF1_rxComplete(device_t *d)
+{
     return (usartF1_io->isr.rx.count == 0) ? 1 : 0;
 }
 #endif
 
-static uint8_t dmaCh0Complete(device_t *d) {
+static uint8_t dmaCh0Complete(device_t *d)
+{
     return (dmaChActive(&DMA.CH0) > 0) ? 0 : 1;
 }
-static uint8_t dmaCh1Complete(device_t *d) {
+static uint8_t dmaCh1Complete(device_t *d)
+{
     return (dmaChActive(&DMA.CH1) > 0) ? 0 : 1;
 }
-static uint8_t dmaCh2Complete(device_t *d) {
+static uint8_t dmaCh2Complete(device_t *d)
+{
     return (dmaChActive(&DMA.CH2) > 0) ? 0 : 1;
 }
-static uint8_t dmaCh3Complete(device_t *d) {
+static uint8_t dmaCh3Complete(device_t *d)
+{
     return (dmaChActive(&DMA.CH3) > 0) ? 0 : 1;
 }
 
@@ -229,8 +273,8 @@ static uint8_t dmaCh3Complete(device_t *d) {
 
 /* Send a byte from buffer to USART data.
  */
-static inline void bufferedTx(struct usartIo_s *io) {
-    
+static inline void bufferedTx(struct usartIo_s *io)
+{
     if(io->isr.tx.count > 0) {
         // if bytes to send are available
         io->u->DATA = *io->isr.tx.b;
@@ -245,8 +289,8 @@ static inline void bufferedTx(struct usartIo_s *io) {
 
 /* Receive a byte from USART data into buffer
  */
-static inline void bufferedRx(struct usartIo_s *io) {
-    
+static inline void bufferedRx(struct usartIo_s *io)
+{
     if(io->isr.rx.count > 0) {
         // bytes to receive
         *io->isr.rx.b = io->u->DATA;
@@ -277,8 +321,8 @@ void usartInitSpi(struct USART_struct *u,
                   enum usartDataOrder_e order,
                   enum usartClockPhase_e phase,
                   uint8_t baudctrlA,
-                  uint8_t baudctrlB) {
-    
+                  uint8_t baudctrlB)
+{
     u->CTRLC = USART_CMODE_MSPI_gc | order | phase; // master SPI mode, set bit order and clock phase
     u->BAUDCTRLA = baudctrlA;                       // set baud rate
     u->BAUDCTRLB = baudctrlB;
@@ -297,8 +341,8 @@ void usartInitSpiTx(struct USART_struct *u,
                     enum usartDataOrder_e order,
                     enum usartClockPhase_e phase,
                     uint8_t baudctrlA,
-                    uint8_t baudctrlB) {
-
+                    uint8_t baudctrlB)
+{
     u->CTRLC = USART_CMODE_MSPI_gc | order | phase; // master SPI mode, set bit order and clock phase
     u->BAUDCTRLA = baudctrlA;                       // set baud rate
     u->BAUDCTRLB = baudctrlB;
@@ -313,8 +357,8 @@ void usartInitSpiTx(struct USART_struct *u,
  */ 
 void usartInitAsync(struct USART_struct *u,
                     uint8_t baudctrlA,
-                    uint8_t baudctrlB) {
-    
+                    uint8_t baudctrlB)
+{
     // asynchronous mode, no parity, 1 stop bits, 8 bit size
     u->CTRLC = USART_CMODE_ASYNCHRONOUS_gc | USART_CHSIZE_8BIT_gc;
     u->BAUDCTRLA = baudctrlA;                   // set baud rate
@@ -330,8 +374,8 @@ void usartInitAsync(struct USART_struct *u,
  */ 
 void usartInitAsyncTx(struct USART_struct *u,
                       uint8_t baudctrlA,
-                      uint8_t baudctrlB) {
-    
+                      uint8_t baudctrlB)
+{
     // asynchronous mode, no parity, 1 stop bits, 8 bit size
     u->CTRLC = USART_CMODE_ASYNCHRONOUS_gc | USART_CHSIZE_8BIT_gc;
     u->BAUDCTRLA = baudctrlA;                   // set baud rate
@@ -342,8 +386,8 @@ void usartInitAsyncTx(struct USART_struct *u,
 /*! Flush USART data buffers.\n
  *  \param u Pointer to USART peripheral to flush.
  */
-void usartFlush(struct USART_struct *u) {
-    
+void usartFlush(struct USART_struct *u)
+{
     u->DATA;
     u->DATA;
     u->DATA;
@@ -352,8 +396,8 @@ void usartFlush(struct USART_struct *u) {
 /*! Enable initialized but possibly disabled USART peripheral, enables tx and rx pins, flushes USART data buffer.\n
  *  \param u Pointer to USART peripheral to enable.
  */
-void usartEnable(struct USART_struct *u) {
-    
+void usartEnable(struct USART_struct *u)
+{
     u->CTRLB |= USART_RXEN_bm | USART_TXEN_bm;
     u->STATUS |= USART_RXCIF_bm | USART_TXCIF_bm;    // clear interrupt and status flags
     usartFlush(u);                                  // flush data buffer
@@ -362,8 +406,8 @@ void usartEnable(struct USART_struct *u) {
 /*! Enable initialized but possibly disabled USART peripheral, enables tx pin only, flushes USART data buffer.\n
  *  \param u Pointer to USART peripheral to enable.
  */
-void usartEnableTx(struct USART_struct *u) {
-
+void usartEnableTx(struct USART_struct *u)
+{
     u->CTRLB |= USART_TXEN_bm;
     u->STATUS |= USART_RXCIF_bm | USART_TXCIF_bm;    // clear interrupt and status flags
     usartFlush(u);                                  // flush data buffer
@@ -372,8 +416,8 @@ void usartEnableTx(struct USART_struct *u) {
 /*! Disable USART peripheral, disables tx and rx pins.
  *  \param u Pointer to USART peripheral to disable.
  */
-void usartDisable(struct USART_struct *u) {
-    
+void usartDisable(struct USART_struct *u)
+{
     u->CTRLB &= ~(USART_RXEN_bm | USART_TXEN_bm);
 }
 
@@ -385,7 +429,8 @@ void usartDisable(struct USART_struct *u) {
  *  \param count Number of bytes to send/receive, maximum of 252 bytes.
  *  Since SPI sens and receives at the same time, both operations occur at once.
  */
-void usartSpiIo(struct USART_struct *u, uint8_t *tx, uint8_t *rx, uint8_t count) {
+void usartSpiIo(struct USART_struct *u, uint8_t *tx, uint8_t *rx, uint8_t count)
+{
     uint8_t i = 0;      // iterate through TX buffer
     uint8_t j = 0;      // iterate through RX buffer
     
@@ -424,7 +469,8 @@ void usartSpiIo(struct USART_struct *u, uint8_t *tx, uint8_t *rx, uint8_t count)
  *  \param count Number of bytes to send/receive.
  *  Since SPI sens and receives at the same time, both operations occur at once.
  */
-void usartSpiIo_P(struct USART_struct *u, const uint8_t *tx, uint8_t *rx, uint8_t count) {
+void usartSpiIo_P(struct USART_struct *u, const uint8_t *tx, uint8_t *rx, uint8_t count)
+{
     uint8_t i = 0;      // iterate through TX buffer
     uint8_t j = 0;      // iterate through RX buffer
     
@@ -462,8 +508,8 @@ void usartSpiIo_P(struct USART_struct *u, const uint8_t *tx, uint8_t *rx, uint8_
  */
 void usartRegisterTxcIsr(struct usartIo_s *io,
                          enum usartTxCompleteInterrupt_e txc,
-                         void(*isr)(void)) {
-    
+                         void(*isr)(void))
+{
     io->u->CTRLA &= ~USART_TXCINTLVL_HI_gc;     // clear previous bits
     if (isr != NULL) {
         io->u->CTRLA |= txc;
@@ -482,8 +528,8 @@ void usartRegisterTxcIsr(struct usartIo_s *io,
 void usartInitIsrIo(struct USART_struct *u, 
         struct usartIo_s *io, 
         enum usartRxCompleteInterrupt_e rxc, 
-        enum usartDataRegisterEmptyInterrupt_e dre) {
-    
+        enum usartDataRegisterEmptyInterrupt_e dre)
+{
     if (u == NULL || io == NULL) {
         return;
     }
@@ -573,8 +619,8 @@ void usartIsrIo(struct usartIo_s *io,
         const uint8_t *tx,
         uint8_t *rx,
         uint8_t count,
-        task_fp cb) {
-    
+        task_fp cb)
+{
     if (io == NULL || tx == NULL || rx == NULL) {
         return;
     }
@@ -611,8 +657,8 @@ void usartIsrIo(struct usartIo_s *io,
 void usartIsrTx(struct usartIo_s *io,
         const uint8_t *tx,
         uint8_t count,
-        task_fp cb) {
-    
+        task_fp cb)
+{
     if (io == NULL || tx == NULL) {
         return;
     }
@@ -649,8 +695,8 @@ void usartIsrTx(struct usartIo_s *io,
 void usartIsrRx(struct usartIo_s *io,
         uint8_t *rx,
         uint8_t count,
-        task_fp cb) {
-    
+        task_fp cb)
+{
     if (io == NULL || rx == NULL) {
         return;
     }
@@ -680,8 +726,8 @@ void usartIsrRx(struct usartIo_s *io,
  *  Note: Function sets internal states such that task scheduler will execute
  *  any registered RX complete callback during next scheduler check.
  */
-void usartIsrRxGetBytes(struct usartIo_s *io, uint8_t *count) {
-    
+void usartIsrRxGetBytes(struct usartIo_s *io, uint8_t *count)
+{
     if (io == NULL || count == NULL) {
         return;
     }
@@ -709,8 +755,8 @@ void usartIsrRxGetBytes(struct usartIo_s *io, uint8_t *count) {
 void usartInitDmaIo(struct USART_struct *u, 
         struct usartIo_s *io,
         struct DMA_CH_struct *txDma,
-        struct DMA_CH_struct *rxDma) {
-    
+        struct DMA_CH_struct *rxDma)
+{
     if (u == NULL || io == NULL) {
         return;
     }
@@ -849,8 +895,8 @@ void usartDmaIo(struct usartIo_s *io,
         const uint8_t *tx,
         volatile uint8_t *rx,
         uint8_t count,
-        task_fp cb) {
-    
+        task_fp cb)
+{
     if (io == NULL || tx == NULL || rx == NULL) {
         return;
     }
@@ -885,8 +931,8 @@ void usartDmaIo(struct usartIo_s *io,
 void usartDmaTx(struct usartIo_s *io,
         const uint8_t *tx,
         uint8_t count,
-        task_fp cb) {
-    
+        task_fp cb)
+{
     if (io == NULL || tx == NULL) {
         return;
     }
@@ -918,8 +964,8 @@ void usartDmaTx(struct usartIo_s *io,
 void usartDmaRx(struct usartIo_s *io,
         volatile uint8_t *rx,
         uint8_t count,
-        task_fp cb) {
-    
+        task_fp cb)
+{
     if (io == NULL || rx == NULL) {
         return;
     }
