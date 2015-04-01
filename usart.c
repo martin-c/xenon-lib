@@ -57,9 +57,13 @@ static inline void bufferedRx(struct usartIo_s *io);
  * Also define functions to check tx/rx status for callback handling.
  * Note: Below also defines a global usartIo_s for each USART peripheral
  * present, regardless of whether this peripheral is used for buffered IO.
+ *
+ * If USART_LIB_ISR_HANDLER is defined, then DRE/RXC/TXC interrupts will be
+ * handled by USART lib and `usartIsr*` functions and related will be available.
  */
 #if USARTC0_RXC_vect_num > 0
 static struct usartIo_s *usartC0_io;
+#ifdef USART_LIB_ISR_HANDLER
 ISR(USARTC0_DRE_vect)
 {
     bufferedTx(usartC0_io);
@@ -72,6 +76,7 @@ ISR(USARTC0_TXC_vect)
 {
     usartC0_io->txcIsr();
 }
+#endif /* USART_LIB_ISR_HANDLER */
 static uint8_t usartC0_txComplete(device_t *d)
 {
     return (usartC0_io->isr.tx.count == 0) ? 1 : 0;
@@ -84,6 +89,7 @@ static uint8_t usartC0_rxComplete(device_t *d)
 
 #if USARTC1_RXC_vect_num > 0
 static struct usartIo_s *usartC1_io;
+#ifdef USART_LIB_ISR_HANDLER
 ISR(USARTC1_DRE_vect)
 {
     bufferedTx(usartC1_io);
@@ -96,6 +102,7 @@ ISR(USARTC1_TXC_vect)
 {
     usartC1_io->txcIsr();
 }
+#endif /* USART_LIB_ISR_HANDLER */
 static uint8_t usartC1_txComplete(device_t *d)
 {
     return (usartC1_io->isr.tx.count == 0) ? 1 : 0;
@@ -108,6 +115,7 @@ static uint8_t usartC1_rxComplete(device_t *d)
 
 #if USARTD0_RXC_vect_num > 0
 static struct usartIo_s *usartD0_io;
+#ifdef USART_LIB_ISR_HANDLER
 ISR(USARTD0_DRE_vect)
 {
     bufferedTx(usartD0_io);
@@ -120,6 +128,7 @@ ISR(USARTD0_TXC_vect)
 {
     usartD0_io->txcIsr();
 }
+#endif /* USART_LIB_ISR_HANDLER */
 static uint8_t usartD0_txComplete(device_t *d)
 {
     return (usartD0_io->isr.tx.count == 0) ? 1 : 0;
@@ -132,6 +141,7 @@ static uint8_t usartD0_rxComplete(device_t *d)
 
 #if USARTD1_RXC_vect_num > 0
 static struct usartIo_s *usartD1_io;
+#ifdef USART_LIB_ISR_HANDLER
 ISR(USARTD1_DRE_vect)
 {
     bufferedTx(usartD1_io);
@@ -144,6 +154,7 @@ ISR(USARTD1_TXC_vect)
 {
     usartD1_io->txcIsr();
 }
+#endif /* USART_LIB_ISR_HANDLER */
 static uint8_t usartD1_txComplete(device_t *d)
 {
     return (usartD1_io->isr.tx.count == 0) ? 1 : 0;
@@ -156,6 +167,7 @@ static uint8_t usartD1_rxComplete(device_t *d)
 
 #if USARTE0_RXC_vect_num > 0
 static struct usartIo_s *usartE0_io;
+#ifdef USART_LIB_ISR_HANDLER
 ISR(USARTE0_DRE_vect)
 {
     bufferedTx(usartE0_io);
@@ -168,6 +180,7 @@ ISR(USARTE0_TXC_vect)
 {
     usartE0_io->txcIsr();
 }
+#endif /* USART_LIB_ISR_HANDLER */
 static uint8_t usartE0_txComplete(device_t *d)
 {
     return (usartE0_io->isr.tx.count == 0) ? 1 : 0;
@@ -180,6 +193,7 @@ static uint8_t usartE0_rxComplete(device_t *d)
 
 #if USARTE1_RXC_vect_num > 0
 static struct usartIo_s *usartE1_io;
+#ifdef USART_LIB_ISR_HANDLER
 ISR(USARTE1_DRE_vect)
 {
     bufferedTx(usartE1_io);
@@ -192,6 +206,7 @@ ISR(USARTE1_TXC_vect)
 {
     usartE1_io->txcIsr();
 }
+#endif /* USART_LIB_ISR_HANDLER */
 static uint8_t usartE1_txComplete(device_t *d)
 {
     return (usartE1_io->isr.tx.count == 0) ? 1 : 0;
@@ -204,6 +219,7 @@ static uint8_t usartE1_rxComplete(device_t *d)
 
 #if USARTF0_RXC_vect_num > 0
 static struct usartIo_s *usartF0_io;
+#ifdef USART_LIB_ISR_HANDLER
 ISR(USARTF0_DRE_vect)
 {
     bufferedTx(usartF0_io);
@@ -216,6 +232,7 @@ ISR(USARTF0_TXC_vect)
 {
     usartF0_io->txcIsr();
 }
+#endif /* USART_LIB_ISR_HANDLER */
 static uint8_t usartF0_txComplete(device_t *d)
 {
     return (usartF0_io->isr.tx.count == 0) ? 1 : 0;
@@ -228,6 +245,7 @@ static uint8_t usartF0_rxComplete(device_t *d)
 
 #if USARTF1_RXC_vect_num > 0
 static struct usartIo_s *usartF1_io;
+#ifdef USART_LIB_ISR_HANDLER
 ISR(USARTF1_DRE_vect)
 {
     bufferedTx(usartF1_io);
@@ -240,6 +258,7 @@ ISR(USARTF1_TXC_vect)
 {
     usartF1_io->txcIsr();
 }
+#endif /* USART_LIB_ISR_HANDLER */
 static uint8_t usartF1_txComplete(device_t *d)
 {
     return (usartF1_io->isr.tx.count == 0) ? 1 : 0;
@@ -349,7 +368,7 @@ void usartInitSpiTx(struct USART_struct *u,
     u->CTRLB = USART_TXEN_bm;                       // enable TX
 }
 
-/*! Initialize USART peripheral in Asynchrounous communication mode.
+/*! Initialize USART peripheral in Asynchronous communication mode.
  *  Enables TX and RX, no parity, 1 stop bit, 8 data bits per frame.
  *  \param u Pointer to USART peripheral to configure.
  *  \param baudctrlA Baud Rate Control Register A value.
@@ -366,7 +385,7 @@ void usartInitAsync(struct USART_struct *u,
     u->CTRLB = USART_RXEN_bm | USART_TXEN_bm;   // enable RX and TX
 }
 
-/*! Initialize USART peripheral in Asynchrounous communication mode, Transmit only.
+/*! Initialize USART peripheral in Asynchronous communication mode, Transmit only.
  *  Enables TX, no parity, 1 stop bit, 8 data bits per frame.
  *  \param u Pointer to USART peripheral to configure.
  *  \param baudctrlA Baud Rate Control Register A value.

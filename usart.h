@@ -33,6 +33,12 @@
 #include "task-scheduler.h"
 #include "embedded-device.h"
 
+/* Defines whether USART lib should implement interrupt handlers for USART
+ * DRE/RXC/TXC interrupts or if these will be implemented by user.
+ * If USART_LIB_ISR_HANDLER is defined, then DRE/RXC/TXC interrupts will be
+ * handled by USART lib and `usartIsr*` functions and related will be available.
+ */
+#define USART_LIB_ISR_HANDLER 1
 
 
 /***            Public Variables            ***/
@@ -136,6 +142,7 @@ void usartEnableTx(struct USART_struct *u);
 void usartDisable(struct USART_struct *u);
 void usartSpiIo(struct USART_struct *u, uint8_t *tx, uint8_t *rx, uint8_t count);
 void usartSpiIo_P(struct USART_struct *u, const uint8_t *tx, uint8_t *rx, uint8_t count);
+#ifdef USART_LIB_ISR_HANDLER
 void usartRegisterTxcIsr(struct usartIo_s *io,
                          enum usartTxCompleteInterrupt_e txc,
                          void(*isr)(void));
@@ -157,6 +164,7 @@ void usartIsrRx(struct usartIo_s *io,
         uint8_t count,
         task_fp cb);
 void usartIsrRxGetBytes(struct usartIo_s *io, uint8_t *count);
+#endif /* USART_LIB_ISR_HANDLER */
 void usartInitDmaIo(struct USART_struct *u, 
         struct usartIo_s *io,
         struct DMA_CH_struct *txDma,
