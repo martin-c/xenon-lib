@@ -27,13 +27,9 @@
 
 #pragma once
 
+#include "lib-config.h"
 #include <inttypes.h>
 #include <avr/io.h>
-
-/*! Timer hardware peripheral which runs all software timers.
- */
-#define HW_TIMER                    TCC0
-#define HW_TIMER_ISR                TCC0_OVF_vect
 
 
 
@@ -103,12 +99,14 @@ typedef struct timer_s {
 
 
 /***            Public Functions            ***/
+#ifdef XENON_RTC_AS_TIMER_SOURCE
 void timerRtcInit(enum rtcPrescale_e prescale,
                   enum rtcClockSource_e clkSource,
                   enum rtcOvfInterrupt_e ovfInterrupt,
                   uint16_t period);
 void timerRtcStart(void);
 void timerRtcStop(void);
+#endif
 void timerHwStart(enum timerClockSelect_e clock,
                   enum timerOvfInterrupt_e ovfInterrupt,
                   uint16_t period);

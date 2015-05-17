@@ -26,6 +26,7 @@
  */
 
 #include "timer.h"
+#include "lib-config.h"
 #include <string.h>
 #include <util/atomic.h>
 
@@ -55,20 +56,22 @@ static inline void timerTick(void);
 /*  Timer overflow ISR.
  *  Updates internal timerCount and wakes device from sleep.
  */
-ISR(HW_TIMER_ISR) {
+ISR(XENON_TIMER_TC_ISR) {
     timerTick();
 }
 
+#ifdef XENON_RTC_AS_TIMER_SOURCE
 ISR(RTC_OVF_vect) {
     timerTick();
 }
+#endif
 
 
 /***            Private Functions               ***/
 
 /* Each software timer tick
  */
-static inline void timerTick(void) {
+static inline void __attribute__ ((always_inline)) timerTick(void) {
     timerCount++;
     hwTimerF = 1;
 }
@@ -77,6 +80,7 @@ static inline void timerTick(void) {
 
 /***            Public Functions            ***/
 
+#ifdef XENON_RTC_AS_TIMER_SOURCE
 /*! Initialize RTC as timer based on setting provided.
  *  \param prescale RTC clock prescaler value.
  *  \param clkSource RTC clock source.
@@ -113,6 +117,7 @@ void timerRtcStart(void) {
 void timerRtcStop(void) {
     CLK.RTCCTRL &= ~(CLK_RTCEN_bm); // clear enable bit for RTC clock signal
 }
+#endif
 
 /*! Initialize and start timer peripheral based on settings provided.
  *  \param timer Pointer to timer hardware peripheral to utilize for timer.\n
@@ -126,17 +131,17 @@ void timerHwStart(enum timerClockSelect_e clock,
                   uint16_t period) {
     
     hwTimerF = 0;
-    HW_TIMER.CTRLB = TC_WGMODE_NORMAL_gc;
-    HW_TIMER.INTCTRLA = ovfInterrupt;
-    HW_TIMER.INTCTRLB = 0;
-    HW_TIMER.CNT = 0;
-    HW_TIMER.PER = period;
-    HW_TIMER.CTRLA = clock;
+    XENON_TIMER_TC.CTRLB = TC_WGMODE_NORMAL_gc;
+    XENON_TIMER_TC.INTCTRLA = ovfInterrupt;
+    XENON_TIMER_TC.INTCTRLB = 0;
+    XENON_TIMER_TC.CNT = 0;
+    XENON_TIMER_TC.PER = period;
+    XENON_TIMER_TC.CTRLA = clock;
 }
 
 void timerHwStop(void) {
-    
-    HW_TIMER.CTRLA = 0;
+
+    XENON_TIMER_TC.CTRLA = 0;
 }
 
 /*  Initialize a new timer.
