@@ -519,6 +519,7 @@ void usartSpiIo_P(struct USART_struct *u, const uint8_t *tx, uint8_t *rx, uint8_
     }
 }
 
+#ifdef USART_LIB_ISR_HANDLER
 /*! Register an ISR function for the USART TX Complete interrupt. Function will
  *  be called from within the interrupt context when the USART's TXCIF is set.
  *  \param io Pointer to initialized usartIo_s.
@@ -760,6 +761,8 @@ void usartIsrRxGetBytes(struct usartIo_s *io, uint8_t *count)
     /* Since rx.count has been set to zero, the task scheduler will execute the RX complete callback now.
      */
 }
+
+#endif /* USART_LIB_ISR_HANDLER */
 
 /*! Initialize DMA IO interface for a USART.\n
  *  This function prepares usartIo_s to be used with DMA based transmit/receive

@@ -38,7 +38,7 @@
  * If USART_LIB_ISR_HANDLER is defined, then DRE/RXC/TXC interrupts will be
  * handled by USART lib and `usartIsr*` functions and related will be available.
  */
-#define USART_LIB_ISR_HANDLER 1
+//#define USART_LIB_ISR_HANDLER 1
 
 
 /***            Public Variables            ***/
