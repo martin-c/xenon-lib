@@ -99,7 +99,7 @@ void adcInitChannelDiffNoGain(struct ADC_CH_struct *ch,
 
 void adcEnable(struct ADC_struct *adc);
 void adcDisable(struct ADC_struct *adc);
-void adcStartConversion(struct ADC_struct *adc, enum adcChanIntLevel_e ch_mask);
+void adcStartConversion(struct ADC_struct *adc, enum adcStartConversion_e ch_mask);
 int16_t adcGetAccumulator(struct adcChanBuffer_s *buf);
 
 

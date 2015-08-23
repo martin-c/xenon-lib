@@ -243,7 +243,7 @@ void adcDisable(struct ADC_struct *adc)
  *  \param adc Pointer to ADC hardware peripheral, ADCA or ADCB. NOTE: Only ADCA is currently supported.
  *  \param ch_mask ADC start conversion channel mask.
  */
-void adcStartConversion(struct ADC_struct *adc, enum adcChanIntLevel_e ch_mask)
+void adcStartConversion(struct ADC_struct *adc, enum adcStartConversion_e ch_mask)
 {
     adc->CTRLA |= ch_mask;              // set conversion start bits
 }

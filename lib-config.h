@@ -1,7 +1,6 @@
 /*! \file
- *  quadrature.h
+ *  lib-config.h
  *  xenon-lib
- *
  *
  * The MIT License (MIT)
  *
@@ -26,26 +25,25 @@
  *
  */
 
-/*  Note: THIS FILE IS DEPRECATED. Source is included for reference purposes only.
- *
+/*! xenon-lib configuration file.
+ *  The various library-wide configuration options are defined in this file.
+ *  Edit this file as necessary to configure your project.
  */
-
 #pragma once
 
+/*  ###     Timer Library Configuration     ###
+ */
+/*  Enable RTC as a timer source in timer library (timer.c).
+ *  By enabling the RTC in timer library the rtc-hardware library is no longer available,
+ *  as each of these libraries depends on the RTC overflow interrupt, and only one
+ *  interrupt handler can be defined at once.
+ */
+//#define XENON_RTC_AS_TIMER_SOURCE   1
 
-
-/***                Definitions                 ***/
-
-
-
-/***          Public Global Variables           ***/
-
-
-
-/***             Public Functions               ***/
-
-void quadratureInit(void);
-void quadratureEnable(void);
-void quadratureDisable(void);
-
+/*! Timer hardware peripheral which runs all software timers.
+ *  Needs to be defined in advance so library can assign an
+ *  interrupt handler.
+ */
+#define XENON_TIMER_TC              TCC0
+#define XENON_TIMER_TC_ISR          TCC0_OVF_vect
 
