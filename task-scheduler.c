@@ -66,7 +66,7 @@ struct conditionalParams_s {
 
 // a single task
 struct tsTask_s {
-    void (*cb)(device_t *);
+    task_ptr cb;
     enum taskType_e type;
     union {
         struct timedParams_s        timed;
@@ -74,9 +74,6 @@ struct tsTask_s {
         struct conditionalParams_s  conditional;
     } params;
 };
-
-//! pointer to current task
-static struct tsTask_s *currTask;
 
 //! static memory for all task definitions
 static struct tsTask_s tasks[TS_MAX_TASKS];
@@ -102,8 +99,8 @@ static void releaseTask(task_t *t);
 
 /*  Return pointer to a new uninitialized task struct. Return NULL if out of memory.
  */
-static task_t *allocTask(void) {
-    
+static task_t *allocTask(void)
+{
     uint8_t i;
     
     for (i=0; i < sizeof tasks / sizeof tasks[0]; i++) {
@@ -117,7 +114,8 @@ static task_t *allocTask(void) {
 
 /*  Return used task to task memory pool
  */
-static void releaseTask(task_t *t) {
+static void releaseTask(task_t *t)
+{
     t->type = TASK_EMPTY;
 }
 
@@ -128,8 +126,8 @@ static void releaseTask(task_t *t) {
 /*  Create a new timed repeating task.
  *
  */
-task_t *tsNewTimedTask(void (*task)(device_t *), int16_t period) {
-    
+task_t *tsNewTimedTask(task_ptr task, int16_t period)
+{
     task_t *new;
     
     // allocate new task, check if NULL
@@ -150,8 +148,8 @@ task_t *tsNewTimedTask(void (*task)(device_t *), int16_t period) {
 /*  Create a new timed one-shot task.
  *
  */
-task_t *tsNewTimedSingleShotTask(void (*task)(device_t *), int16_t period) {
-    
+task_t *tsNewTimedSingleShotTask(task_ptr task, int16_t period)
+{
     task_t *new;
     
     // allocate new task, check if NULL
@@ -172,8 +170,8 @@ task_t *tsNewTimedSingleShotTask(void (*task)(device_t *), int16_t period) {
 /*  Create a new queued task.
  *
  */
-task_t *tsEnqueueTask(void (*task)(device_t *)) {
-    
+task_t *tsEnqueueTask(task_ptr task)
+{
     task_t *new;
     
     // allocate new task, check if NULL
@@ -194,8 +192,8 @@ task_t *tsEnqueueTask(void (*task)(device_t *)) {
  *  \param cb Function pointer to callback which dtermines if task should run.
  *  Callback should return nonzero to run task, 0 to not run task.
  */
-task_t *tsNewConditionalTask(void (*task)(device_t *), uint8_t (*cb)(device_t *)) {
-    
+task_t *tsNewConditionalTask(task_ptr task, uint8_t (*cb)(device_t *))
+{
     task_t *new;
     
     // allocate new task, check if NULL
@@ -217,8 +215,8 @@ task_t *tsNewConditionalTask(void (*task)(device_t *), uint8_t (*cb)(device_t *)
  *  \param cb Function pointer to callback which dtermines if task should run.
  *  Callback should return nonzero to run task, 0 to not run task.
  */
-task_t *tsNewConditionalSingleShotTask(void (*task)(device_t *), uint8_t (*cb)(device_t *)) {
-    
+task_t *tsNewConditionalSingleShotTask(task_ptr task, uint8_t (*cb)(device_t *))
+{
     task_t *new;
     
     // allocate new task, check if NULL
@@ -238,8 +236,8 @@ task_t *tsNewConditionalSingleShotTask(void (*task)(device_t *), uint8_t (*cb)(d
 /*  Release a task and recycle associated memory. Cancels any pending task callbacks.
  *
  */
-void tsReleaseTask(task_t *t) {
-    
+void tsReleaseTask(task_t *t)
+{
     if (t != NULL) {
         releaseTask(t);
     }
@@ -248,26 +246,23 @@ void tsReleaseTask(task_t *t) {
 /*  Main task manager. Iterates through all tasks and manages task execution.
  *
  */
-void tsMain(device_t *dev) {
-    
+void tsMain(device_t *dev)
+{
     uint8_t i;
     
     // first iterate through timed tasks
     for (i=0; i < sizeof tasks / sizeof tasks[0]; i++) {
         if (tasks[i].type == TASK_TIMED) {
-            currTask = &tasks[i];
-            if (timerActive(&currTask->params.timed.dueTimer) == 0) {
+            if (timerActive(&tasks[i].params.timed.dueTimer) == 0) {
                 // task timer has elapsed
-                if (currTask->params.timed.period > 0) {
+                //fprintf_P(debug, PSTR("t: %p\r\n"), tasks[i].cb);
+                tasks[i].cb(dev);
+                if (tasks[i].params.timed.period > 0) {
                     // task is not single shot, renew timer
-                    timerAddPeriod(&currTask->params.timed.dueTimer, currTask->params.timed.period);
-                    //fprintf_P(debug, PSTR("t: %p\r\n"), currTask->cb);
-                    currTask->cb(dev);
+                    timerAddPeriod(&tasks[i].params.timed.dueTimer, tasks[i].params.timed.period);
                 } else {
                     // task is single shot, release it
-                    tsReleaseTask(currTask);
-                    //fprintf_P(debug, PSTR("t: %p\r\n"), currTask->cb);
-                    currTask->cb(dev);
+                    tsReleaseTask(&tasks[i]);
                 }
             }
         }
@@ -275,29 +270,28 @@ void tsMain(device_t *dev) {
     
     // next iterate through conditional and queued tasks
     for (i=0; i < sizeof tasks / sizeof tasks[0]; i++) {
-        currTask = &tasks[i];
-        switch (currTask->type) {
+        switch (tasks[i].type) {
             
             case TASK_QUEUED:
-                tsReleaseTask(currTask);
-                //fprintf_P(debug, PSTR("t: %p\r\n"), currTask->cb);
-                currTask->cb(dev);
+                //fprintf_P(debug, PSTR("t: %p\r\n"), tasks[i].cb);
+                tasks[i].cb(dev);
+                tsReleaseTask(&tasks[i]);
                 break;
                 
             case TASK_CONDITIONAL:
-                if (currTask->params.conditional.cb(dev) != 0) {
+                if (tasks[i].params.conditional.cb(dev) != 0) {
                     // conditional check passed
-                    //fprintf_P(debug, PSTR("t: %p\r\n"), currTask->cb);
-                    currTask->cb(dev);
+                    //fprintf_P(debug, PSTR("t: %p\r\n"), tasks[i].cb);
+                    tasks[i].cb(dev);
                 }
                 break;
                 
             case TASK_CONDITIONAL_SH:
-                if (currTask->params.conditional.cb(dev) != 0) {
+                if (tasks[i].params.conditional.cb(dev) != 0) {
                     // conditional check passed
-                    //fprintf_P(debug, PSTR("t: %p\r\n"), currTask->cb);
-                    currTask->cb(dev);
-                    tsReleaseTask(currTask);
+                    //fprintf_P(debug, PSTR("t: %p\r\n"), tasks[i].cb);
+                    tasks[i].cb(dev);
+                    tsReleaseTask(&tasks[i]);
                 }
                 break;
                 
@@ -306,6 +300,4 @@ void tsMain(device_t *dev) {
         }
     }
 }
-
-
 

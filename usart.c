@@ -639,7 +639,7 @@ void usartIsrIo(struct usartIo_s *io,
         const uint8_t *tx,
         uint8_t *rx,
         uint8_t count,
-        task_fp cb)
+        task_ptr cb)
 {
     if (io == NULL || tx == NULL || rx == NULL) {
         return;
@@ -677,7 +677,7 @@ void usartIsrIo(struct usartIo_s *io,
 void usartIsrTx(struct usartIo_s *io,
         const uint8_t *tx,
         uint8_t count,
-        task_fp cb)
+        task_ptr cb)
 {
     if (io == NULL || tx == NULL) {
         return;
@@ -715,7 +715,7 @@ void usartIsrTx(struct usartIo_s *io,
 void usartIsrRx(struct usartIo_s *io,
         uint8_t *rx,
         uint8_t count,
-        task_fp cb)
+        task_ptr cb)
 {
     if (io == NULL || rx == NULL) {
         return;
@@ -917,7 +917,7 @@ void usartDmaIo(struct usartIo_s *io,
         const uint8_t *tx,
         volatile uint8_t *rx,
         uint8_t count,
-        task_fp cb)
+        task_ptr cb)
 {
     if (io == NULL || tx == NULL || rx == NULL) {
         return;
@@ -953,7 +953,7 @@ void usartDmaIo(struct usartIo_s *io,
 void usartDmaTx(struct usartIo_s *io,
         const uint8_t *tx,
         uint8_t count,
-        task_fp cb)
+        task_ptr cb)
 {
     if (io == NULL || tx == NULL) {
         return;
@@ -986,7 +986,7 @@ void usartDmaTx(struct usartIo_s *io,
 void usartDmaRx(struct usartIo_s *io,
         volatile uint8_t *rx,
         uint8_t count,
-        task_fp cb)
+        task_ptr cb)
 {
     if (io == NULL || rx == NULL) {
         return;

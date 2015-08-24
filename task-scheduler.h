@@ -37,11 +37,6 @@
 
 /***                Definitions                 ***/
 
-enum taskReturnValues_e {
-
-};
-
-
 
 
 /***          Public Global Variables           ***/
@@ -50,19 +45,20 @@ enum taskReturnValues_e {
  */
 typedef struct tsTask_s task_t;
 
-/*  A task function pointer
+/*! A task function pointer
  *  A pointer to a function returning void with a single device_t pointer argument.
+ *  Function is what the task manager calls when a task is run.
  */
-typedef void (*task_fp)(device_t *);
+typedef void (*task_ptr)(device_t *);
 
 
 
 /***             Public Functions               ***/
 
-task_t *tsNewTimedTask(void (*task)(device_t *), int16_t period);
-task_t *tsNewTimedSingleShotTask(void (*task)(device_t *), int16_t period);
-task_t *tsEnqueueTask(void (*task)(device_t *));
-task_t *tsNewConditionalTask(void (*task)(device_t *), uint8_t (*cb)(device_t *));
-task_t *tsNewConditionalSingleShotTask(void (*task)(device_t *), uint8_t (*cb)(device_t *));
+task_t *tsNewTimedTask(task_ptr task, int16_t period);
+task_t *tsNewTimedSingleShotTask(task_ptr task, int16_t period);
+task_t *tsEnqueueTask(task_ptr task);
+task_t *tsNewConditionalTask(task_ptr task, uint8_t (*cb)(device_t *));
+task_t *tsNewConditionalSingleShotTask(task_ptr task, uint8_t (*cb)(device_t *));
 void tsReleaseTask(task_t *t);
 void tsMain(device_t *dev);
