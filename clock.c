@@ -113,7 +113,13 @@ void clockEnableDfllCalibration(enum clockDfllCalSource_e src) {
     } else {
         OSC.XOSCCTRL = OSC_XOSCSEL_32KHz_gc;    // configure external oscillator
         OSC.CTRL |= OSC_XOSCEN_bm;              // enable external oscillator for DFLL
+        #if defined(OSC_RC32MCREF_bm)
         OSC.DFLLCTRL = OSC_RC2MCREF_bm | OSC_RC32MCREF_bm;
+        #elif defined(OSC_RC32MCREF_gm)
+        OSC.DFLLCTRL = OSC_RC2MCREF_bm | OSC_RC32MCREF_XOSC32K_gc;
+        #else
+        #error Unknown DFLL Control register (DFLLCTRL) bitmasks.
+        #endif
     }
     
     switch (CLK.CTRL) {
