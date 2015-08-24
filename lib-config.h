@@ -4,7 +4,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2014 Martin Clemons
+ * Copyright (c) 2015 Martin Clemons
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -31,8 +31,12 @@
  */
 #pragma once
 
+
+
 /*  ###     Timer Library Configuration     ###
+ *
  */
+
 /*  Enable RTC as a timer source in timer library (timer.c).
  *  By enabling the RTC in timer library the rtc-hardware library is no longer available,
  *  as each of these libraries depends on the RTC overflow interrupt, and only one
@@ -46,4 +50,20 @@
  */
 #define XENON_TIMER_TC              TCC0
 #define XENON_TIMER_TC_ISR          TCC0_OVF_vect
+
+
+
+/*  ### Cooperative Task Scheduler Configuration    ###
+ *
+ */
+
+/*! Since the allocation of memory for task data is static, we need to know the
+ *  maximum number of simultaneous tasks to allocate memory for.
+ */
+#define TS_MAX_TASKS        64
+
+/*! Print debugging information from task scheduler.
+ *
+ */
+#define TS_DEBUG            1
 

@@ -2,7 +2,7 @@
  *  semaphore.h
  *  xenon-lib
  *
- * Copyright (c) 2014 Martin Clemons
+ * Copyright (c) 2015 Martin Clemons
  *
  * The MIT License (MIT)
  *

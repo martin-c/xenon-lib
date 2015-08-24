@@ -4,7 +4,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2014 Martin Clemons
+ * Copyright (c) 2015 Martin Clemons
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -31,15 +31,16 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include "embedded-device.h"
+#include "lib-config.h"
 
 
 
 /***                Definitions                 ***/
 
-/*! Since the allocation of memory for tasks is static, we need to know the maximum number of simultaneous
- *  tasks to allocate memory for.
- */
-#define TS_MAX_TASKS        64
+enum taskReturnValues_e {
+
+};
+
 
 
 
