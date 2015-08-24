@@ -33,8 +33,8 @@
  *  Function does not check if oscillator is stable before returning.
  *  \param mask Mask of oscillator(s) to enable.
  */
-void clockEnableOsc(enum clockSource_e src) {
-   
+void clockEnableOsc(enum clockSource_e src)
+{
     uint8_t mask = 1 << src;    // mask for control and status registers corresponding to new clock source
     OSC.CTRL |= mask;
 }
@@ -42,8 +42,8 @@ void clockEnableOsc(enum clockSource_e src) {
 /*! Disable an oscillator.
  *  \param mask Mask of oscillator(s) to disable.
  */
-void clockDisableOsc(enum clockSource_e src) {
-    
+void clockDisableOsc(enum clockSource_e src)
+{
     uint8_t mask = 1 << src;    // mask for control and status registers corresponding to new clock source
     OSC.CTRL &= ~mask;
 }
@@ -52,8 +52,8 @@ void clockDisableOsc(enum clockSource_e src) {
  *  \param freq Enum defining XOSC frequency range.
  *  \param sel Enum defining XOSC selection and startup time.
  */
-void clockConfigXosc(enum clockXoscFreq_e freq, enum clockXoscSelection_e sel) {
-    
+void clockConfigXosc(enum clockXoscFreq_e freq, enum clockXoscSelection_e sel)
+{
     OSC.XOSCCTRL = freq | sel;
 }
 
@@ -61,8 +61,8 @@ void clockConfigXosc(enum clockXoscFreq_e freq, enum clockXoscSelection_e sel) {
  *  \param src New clock source.
  *  Function blocks until desired oscillator is stable, does not deactivate old clock source.
  */
-void clockSetSource(enum clockSource_e src) {
-    
+void clockSetSource(enum clockSource_e src)
+{
     clockDisbaleDfllCalibration();
     uint8_t mask = 1 << src;    // mask for control and status registers corresponding to new clock source
     
@@ -83,8 +83,8 @@ void clockSetSource(enum clockSource_e src) {
  *  from 1x to 31x. The output frequency from the PLL should not exceed 200 MHz.
  *  The PLL must have a minimum output frequency of 10 MHz.
  */
-void clockConfigPll(enum pllClockSource_e src, uint8_t fact) {
-    
+void clockConfigPll(enum pllClockSource_e src, uint8_t fact)
+{
     fact &= 0x1F;               // mask upper 3 bits of PLL factor, maximum PLL factor is 31.
     OSC.PLLCTRL = src | fact;   // set PLL configuration register.
 }
@@ -92,8 +92,8 @@ void clockConfigPll(enum pllClockSource_e src, uint8_t fact) {
 /*! Configure Prescaler A division factor.\n
  *  \param ps Prescaler A division factor.
  */
-void clockSetPSA(enum prescaleAFactor_e ps) {
-
+void clockSetPSA(enum prescaleAFactor_e ps)
+{
     uint8_t mask = CLK.PSCTRL;
     mask &= 0x03;           // clear all prescale A control bits
     mask |= ps;             // set desired prescale A control bits
@@ -106,8 +106,8 @@ void clockSetPSA(enum prescaleAFactor_e ps) {
  *  \param src Calibration source (internal 32.768kHz or external 32.768kHz).
  *  Oscillator calibration is disabled automatically when clock source is changed.
  */
-void clockEnableDfllCalibration(enum clockDfllCalSource_e src) {
-    
+void clockEnableDfllCalibration(enum clockDfllCalSource_e src)
+{
     if (src == DFLL_CAL_SOURCE_INT) {
         OSC.DFLLCTRL = 0;
     } else {
@@ -149,8 +149,8 @@ void clockEnableDfllCalibration(enum clockDfllCalSource_e src) {
 /*! Disable DFLL RC oscillator calibration on any RC oscillator.\n
  *  Function is automatically called when oscillator is changed
  */
-void clockDisbaleDfllCalibration(void) {
-    
+void clockDisbaleDfllCalibration(void)
+{
     DFLLRC2M.CTRL = 0;
     DFLLRC32M.CTRL = 0;
 }
