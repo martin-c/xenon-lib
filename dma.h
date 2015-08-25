@@ -29,6 +29,7 @@
 
 #include <inttypes.h>
 #include <avr/io.h>
+#include "lib-config.h"
 
 
 
@@ -99,9 +100,11 @@ void dmaChInitSingleShot(struct DMA_CH_struct *c,
                          enum dmaChAddressReload_e destReload,
                          enum dmaChAddressMode_e destDir,
                          enum DMA_CH_TRIGSRC_enum tSource);
-void dmaChRegisterIsr(struct DMA_CH_struct *c, 
+#ifdef XENON_DMA_LIB_ISR_HANDLER
+void dmaChRegisterIsr(struct DMA_CH_struct *c,
                       enum dmaChTransactionCompleteInterrupt_e cmpIntLvl,
                       void (*isr)(void));
+#endif /* XENON_DMA_LIB_ISR_HANDLER */
 void dmaChEnableRepeat(struct DMA_CH_struct *c, uint8_t repCount);
 void dmaChSetSource(struct DMA_CH_struct *c, void *source);
 void dmaChSetDestination(struct DMA_CH_struct *c, volatile void *dest);

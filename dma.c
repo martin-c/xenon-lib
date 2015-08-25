@@ -39,10 +39,12 @@
 /***         Private Global Variables           ***/
 
 /* pointers to external DMA channel interrupt functions */
+#ifdef XENON_DMA_LIB_ISR_HANDLER
 void (*ch0Isr)(void) = 0;
 void (*ch1Isr)(void) = 0;
 void (*ch2Isr)(void) = 0;
 void (*ch3Isr)(void) = 0;
+#endif /* XENON_DMA_LIB_ISR_HANDLER */
 
 
 
@@ -55,6 +57,8 @@ void (*ch3Isr)(void) = 0;
 
 
 /***                   ISRs                     ***/
+
+#ifdef XENON_DMA_LIB_ISR_HANDLER
 ISR(DMA_CH0_vect) {
     
     ch0Isr();
@@ -78,7 +82,7 @@ ISR(DMA_CH3_vect) {
     ch3Isr();
     DMA.CH3.CTRLB |= DMA_CH_TRNIF_bm;
 }
-
+#endif /* XENON_DMA_LIB_ISR_HANDLER */
 
 
 /***             Private Functions              ***/
@@ -143,6 +147,7 @@ void dmaChInitSingleShot(struct DMA_CH_struct *c,
  *  \param cmpIntLvl Transaction complete interrupt priority level.
  *  \param isr Pointer to channel interrupt function, 0 if none.
  */
+#ifdef XENON_DMA_LIB_ISR_HANDLER
 void dmaChRegisterIsr(struct DMA_CH_struct *c, 
                       enum dmaChTransactionCompleteInterrupt_e cmpIntLvl,
                       void (*isr)(void)) {
@@ -170,6 +175,7 @@ void dmaChRegisterIsr(struct DMA_CH_struct *c,
             break;
     }
 }
+#endif /* XENON_DMA_LIB_ISR_HANDLER */
 
 /*! Set the DMA channel repeat mode bit and repeat count
  *  \param c Pointer to DMA channel to configure.
