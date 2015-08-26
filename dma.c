@@ -187,6 +187,15 @@ void dmaChEnableRepeat(struct DMA_CH_struct *c, uint8_t repCount) {
     c->CTRLA |= DMA_CH_REPEAT_bm;
 }
 
+/*! Set DMA channel repeat count. Does not set the REPEAT bit.
+ *  \param c Pointer to DMA channel for which repeat count will be set.
+ *  \param count Repeat count.
+ */
+void dmaChSetRepeatCount(struct DMA_CH_struct *c, uint16_t count)
+{
+    c->REPCNT = count;
+}
+
 /*! Set DMA channel source address.
  *  \param c Pointer to DMA channel for which source address will be set.
  *  \param source Pointer to DMA channel source.

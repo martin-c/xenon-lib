@@ -106,6 +106,7 @@ void dmaChRegisterIsr(struct DMA_CH_struct *c,
                       void (*isr)(void));
 #endif /* XENON_DMA_LIB_ISR_HANDLER */
 void dmaChEnableRepeat(struct DMA_CH_struct *c, uint8_t repCount);
+void dmaChSetRepeatCount(struct DMA_CH_struct *c, uint16_t count);
 void dmaChSetSource(struct DMA_CH_struct *c, void *source);
 void dmaChSetDestination(struct DMA_CH_struct *c, volatile void *dest);
 void dmaChSetTransferCount(struct DMA_CH_struct *c, uint16_t count);
