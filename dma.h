@@ -105,7 +105,7 @@ void dmaChRegisterIsr(struct DMA_CH_struct *c,
                       enum dmaChTransactionCompleteInterrupt_e cmpIntLvl,
                       void (*isr)(void));
 #else
-void dmaChSetIsrLevel(struct DMA_CH_struct *c, enum dmaChTransactionCompleteInterrupt_e cmpIntLvl);
+void dmaChSetInterruptLevel(struct DMA_CH_struct *c, enum dmaChTransactionCompleteInterrupt_e cmpIntLvl);
 #endif /* XENON_DMA_LIB_ISR_HANDLER */
 void dmaChEnableRepeat(struct DMA_CH_struct *c, uint8_t repCount);
 void dmaChSetRepeatCount(struct DMA_CH_struct *c, uint16_t count);

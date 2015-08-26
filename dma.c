@@ -180,7 +180,7 @@ void dmaChRegisterIsr(struct DMA_CH_struct *c,
 }
 
 #else
-void dmaChSetIsrLevel(struct DMA_CH_struct *c, enum dmaChTransactionCompleteInterrupt_e cmpIntLvl)
+void dmaChSetInterruptLevel(struct DMA_CH_struct *c, enum dmaChTransactionCompleteInterrupt_e cmpIntLvl)
 {
     c->CTRLB &= ~DMA_CH_TRNINTLVL_HI_gc;    // clear previous bits
     c->CTRLB |= cmpIntLvl;
