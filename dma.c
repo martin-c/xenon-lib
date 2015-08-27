@@ -210,7 +210,7 @@ void dmaChSetRepeatCount(struct DMA_CH_struct *c, uint16_t count)
  *  \param c Pointer to DMA channel for which source address will be set.
  *  \param source Pointer to DMA channel source.
  */
-void dmaChSetSource(struct DMA_CH_struct *c, void *source)
+void dmaChSetSource(struct DMA_CH_struct *c, volatile void *source)
 {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
         c->SRCADDR0 = (uint8_t)((uint16_t)source);      // low byte of address

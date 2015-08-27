@@ -109,7 +109,7 @@ void dmaChSetInterruptLevel(struct DMA_CH_struct *c, enum dmaChTransactionComple
 #endif /* XENON_DMA_LIB_ISR_HANDLER */
 void dmaChEnableRepeat(struct DMA_CH_struct *c, uint8_t repCount);
 void dmaChSetRepeatCount(struct DMA_CH_struct *c, uint16_t count);
-void dmaChSetSource(struct DMA_CH_struct *c, void *source);
+void dmaChSetSource(struct DMA_CH_struct *c, volatile void *source);
 void dmaChSetDestination(struct DMA_CH_struct *c, volatile void *dest);
 void dmaChSetTransferCount(struct DMA_CH_struct *c, uint16_t count);
 uint16_t dmaChGetTransferCount(struct DMA_CH_struct *c);
