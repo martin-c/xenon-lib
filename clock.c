@@ -111,7 +111,7 @@ void clockEnableDfllCalibration(enum clockDfllCalSource_e src)
     if (src == DFLL_CAL_SOURCE_INT) {
         OSC.DFLLCTRL = 0;
     } else {
-        OSC.XOSCCTRL = OSC_XOSCSEL_32KHz_gc;    // configure external oscillator
+        OSC.XOSCCTRL |= OSC_XOSCSEL_32KHz_gc;   // configure external oscillator
         OSC.CTRL |= OSC_XOSCEN_bm;              // enable external oscillator for DFLL
         #if defined(OSC_RC32MCREF_bm)
         OSC.DFLLCTRL = OSC_RC2MCREF_bm | OSC_RC32MCREF_bm;
