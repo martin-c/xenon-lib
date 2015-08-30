@@ -25,6 +25,7 @@
  *
  */
 
+#include <util/delay.h>
 #include "clock.h"
 
 
@@ -106,13 +107,16 @@ void clockSetPSA(enum prescaleAFactor_e ps)
  *  \param src Calibration source (internal 32.768kHz or external 32.768kHz).
  *  Oscillator calibration is disabled automatically when clock source is changed.
  */
-void clockEnableDfllCalibration(enum clockDfllCalSource_e src)
+int8_t clockEnableDfllCalibration(enum clockDfllCalSource_e src)
 {
     if (src == DFLL_CAL_SOURCE_INT) {
-        OSC.DFLLCTRL = 0;
+        OSC.CTRL |= OSC_RC32KEN_bm;             // enable internal oscillator for DFLL
+        // set both 32MHZ and 2MHZ to use the internal RC32K oscillator
+        OSC.DFLLCTRL = OSC_RC32MCREF_RC32K_gc;
     } else {
         OSC.XOSCCTRL |= OSC_XOSCSEL_32KHz_gc;   // configure external oscillator
         OSC.CTRL |= OSC_XOSCEN_bm;              // enable external oscillator for DFLL
+        // set both 32MHZ and 2MHZ DFLL to use external 32K oscillator
         #if defined(OSC_RC32MCREF_bm)
         OSC.DFLLCTRL = OSC_RC2MCREF_bm | OSC_RC32MCREF_bm;
         #elif defined(OSC_RC32MCREF_gm)
@@ -121,8 +125,27 @@ void clockEnableDfllCalibration(enum clockDfllCalSource_e src)
         #error Unknown DFLL Control register (DFLLCTRL) bitmasks.
         #endif
     }
-    
-    switch (CLK.CTRL) {
+    /* The start-up time of the crystal oscillator is up to 16k clock cycles, which
+     * translates to approximately 1/2 second. We will wait for up to approximately
+     * 1.0 seconds for oscillator to become stable, then fail if it is not stable.
+     * Since the DFLL is not a critical function is does not make sense to block
+     * until oscillator is stable, since in the case of an oscillator failure the
+     * firmware will hang.
+     */
+    uint8_t i;
+    for (i=0; i<100; i++) {
+        _delay_ms(10.0);
+        if ((src == DFLL_CAL_SOURCE_INT && (OSC.STATUS & OSC_RC32KRDY_bm)) ||
+                (src != DFLL_CAL_SOURCE_INT && (OSC.STATUS & OSC_XOSCRDY_bm))) {
+            break;
+        }
+    }
+    if (i == 100) {
+        // oscillator is not ready after timeout period
+        return -1;
+    }
+    // select which DFLL to activate
+    switch (CLK.CTRL & CLK_SCLKSEL_gm) {
         case CLK_SCLKSEL_RC2M_gc:
             // clock source RC 2MHz
             DFLLRC2M.CTRL = DFLL_ENABLE_bm;
@@ -133,17 +156,25 @@ void clockEnableDfllCalibration(enum clockDfllCalSource_e src)
             break;
         case CLK_SCLKSEL_PLL_gc:
             // clock source PLL
-            if ((OSC.PLLCTRL & 0xC0) == OSC_PLLSRC_RC2M_gc) {
-                // PLL source RC 2MHz
-                DFLLRC2M.CTRL = DFLL_ENABLE_bm;
-            } else {
-                // PLL source other (RC 32MHz)
-                DFLLRC32M.CTRL = DFLL_ENABLE_bm;
+            switch (OSC.PLLCTRL & OSC_PLLSRC_gm) {
+                case OSC_PLLSRC_RC2M_gc:
+                    // PLL source RC 2MHz
+                    DFLLRC2M.CTRL = DFLL_ENABLE_bm;
+                    break;
+                case OSC_PLLSRC_RC32M_gc:
+                    // PLL source RC 32MHz
+                    DFLLRC32M.CTRL = DFLL_ENABLE_bm;
+                    break;
+                default:
+                    // unsupported PLL source
+                    return -1;
             }
             break;
         default:
-            break;
+            // unsupported clock source for DFLL calibration
+            return -1;
     }
+    return 0;
 }
 
 /*! Disable DFLL RC oscillator calibration on any RC oscillator.\n

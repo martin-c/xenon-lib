@@ -103,7 +103,7 @@ void clockConfigXosc(enum clockXoscFreq_e freq, enum clockXoscSelection_e sel);
 void clockSetSource(enum clockSource_e src);
 void clockConfigPll(enum pllClockSource_e src, uint8_t fact);
 void clockSetPSA(enum prescaleAFactor_e ps);
-void clockEnableDfllCalibration(enum clockDfllCalSource_e src);
+int8_t clockEnableDfllCalibration(enum clockDfllCalSource_e src);
 void clockDisbaleDfllCalibration(void);
 
 
