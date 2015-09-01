@@ -1,5 +1,5 @@
 /*! \file
- *  embedded-device.h
+ *  device-state.h
  *  xenon-lib
  *
  * The MIT License (MIT)
@@ -25,38 +25,29 @@
  *
  */
 
+
 #pragma once
 
 #include <inttypes.h>
 #include <avr/io.h>
-
-
-/*! The enum below describes the possible warning states for this device.
- *  Please customize as necessary.
- */
-enum deviceWarningBits_e {
-    STATE_WARNING_NONE      = 0,
-};
-
-/*! The enum below describes the possible error states for this device.
- *  Please customize as necessary.
- */
-enum deviceErrorBits_e {
-    STATE_ERROR_NONE      = 0,
-};
+#include "embedded-device.h"
 
 
 
-/* General data types common to many kinds of embedded devices */
+/***            Public Variables            ***/
 
-//! generic embedded device datatype
-typedef struct device_s device_t;
 
-/*! Embedded device structure, with pointers to specialized UI functions and data structures.\n
- *  This structure defines all attributes of a specific device type.
- */
-struct device_s {
-    // implementation specific data and states go here.
-};
+
+/***            Public Functions            ***/
+void deviceSetWarningState(enum deviceWarningBits_e warning);
+void deviceClearWarningState(enum deviceWarningBits_e warning);
+void deviceClearAllWarningStates(void);
+enum deviceWarningBits_e deviceCheckWarningState(enum deviceWarningBits_e warning);
+uint8_t deviceWarningActive(device_t *d);
+void deviceSetErrorState(enum deviceErrorBits_e error);
+void deviceClearErrorState(enum deviceErrorBits_e error);
+void deviceClearAllErrorStates(void);
+enum deviceErrorBits_e deviceCheckErrorState(enum deviceErrorBits_e error);
+uint8_t deviceErrorActive(device_t *d);
 
 
