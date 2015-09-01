@@ -29,6 +29,20 @@
 #include "clock.h"
 
 
+/* The period to wait when starting a clock source for the DFLL hardware, in ms * 10.
+ * The function will wait for the oscillator ready flag to be set for up to this long.
+ * If the flag is not set by this interval the function will not attempt to enable the DFLL
+ * and will return with error.
+ * The start-up time of the crystal oscillator is up to 16k clock cycles, which
+ * translates to approximately 1/2 second. We will wait for up to approximately
+ * 1.0 seconds for oscillator to become stable.
+ * Since the DFLL is not a critical function is does not make sense to block
+ * until oscillator is stable, since in the case of an oscillator failure the
+ * firmware will hang.
+ */
+#define OSCILLATOR_STARTUP_TIMEOUT      100
+
+
 
 /*! Enable an oscillator.
  *  Function does not check if oscillator is stable before returning.
@@ -109,6 +123,7 @@ void clockSetPSA(enum prescaleAFactor_e ps)
  */
 int8_t clockEnableDfllCalibration(enum clockDfllCalSource_e src)
 {
+    // enable required oscillator if necessary
     if (src == DFLL_CAL_SOURCE_INT) {
         OSC.CTRL |= OSC_RC32KEN_bm;             // enable internal oscillator for DFLL
         // set both 32MHZ and 2MHZ to use the internal RC32K oscillator
@@ -125,24 +140,16 @@ int8_t clockEnableDfllCalibration(enum clockDfllCalSource_e src)
         #error Unknown DFLL Control register (DFLLCTRL) bitmasks.
         #endif
     }
-    /* The start-up time of the crystal oscillator is up to 16k clock cycles, which
-     * translates to approximately 1/2 second. We will wait for up to approximately
-     * 1.0 seconds for oscillator to become stable, then fail if it is not stable.
-     * Since the DFLL is not a critical function is does not make sense to block
-     * until oscillator is stable, since in the case of an oscillator failure the
-     * firmware will hang.
-     */
-    uint8_t i;
-    for (i=0; i<100; i++) {
-        _delay_ms(10.0);
-        if ((src == DFLL_CAL_SOURCE_INT && (OSC.STATUS & OSC_RC32KRDY_bm)) ||
-                (src != DFLL_CAL_SOURCE_INT && (OSC.STATUS & OSC_XOSCRDY_bm))) {
-            break;
+    // wait for oscillator ready flag
+    uint8_t i = 0;
+    while ((src == DFLL_CAL_SOURCE_INT && bit_is_clear(OSC.STATUS, OSC_RC32KRDY_bp)) ||
+            (src != DFLL_CAL_SOURCE_INT && bit_is_clear(OSC.STATUS, OSC_XOSCRDY_bp))) {
+        if (i >= OSCILLATOR_STARTUP_TIMEOUT) {
+            // oscillator is not ready after timeout period
+            return -1;
         }
-    }
-    if (i == 100) {
-        // oscillator is not ready after timeout period
-        return -1;
+        i++;
+        _delay_ms(10.0);
     }
     // select which DFLL to activate
     switch (CLK.CTRL & CLK_SCLKSEL_gm) {
