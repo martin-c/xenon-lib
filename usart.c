@@ -756,7 +756,7 @@ void usartIsrRxGetBytes(struct usartIo_s *io, uint8_t *count)
         *count = io->isr.rx.len - io->isr.rx.count;
         // terminate rx
         io->isr.rx.count = 0;
-        io->u->CTRLA &= ~USART_RXCINTLVL_HI_gc;
+        io->u->CTRLA &= ~USART_RXCINTLVL_gm;
     }
     /* Since rx.count has been set to zero, the task scheduler will execute the RX complete callback now.
      */
