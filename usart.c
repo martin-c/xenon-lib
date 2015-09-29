@@ -302,7 +302,7 @@ static inline void bufferedTx(struct usartIo_s *io)
     }
     if (io->isr.tx.count == 0) {
         // no more bytes to send, disable DRE interrupt
-        io->u->CTRLA &= ~USART_DREINTLVL_HI_gc;
+        io->u->CTRLA &= ~USART_DREINTLVL_gm;
     }
 }
 
@@ -319,7 +319,7 @@ static inline void bufferedRx(struct usartIo_s *io)
     if (io->isr.rx.count == 0) {
         // disable further interrupts, location pointed to by io
         // may no longer be valid after IO completes.
-        io->u->CTRLA &= ~USART_RXCINTLVL_HI_gc;
+        io->u->CTRLA &= ~USART_RXCINTLVL_gm;
     }
 }
 
