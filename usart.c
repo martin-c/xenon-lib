@@ -735,7 +735,8 @@ void usartIsrRx(struct usartIo_s *io,
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
         // update atomically to prevent clobbering TX routine ISR state
         io->u->CTRLA |= io->isr.rxc;
-        io->u->STATUS |= USART_RXCIF_bm;
+        // don't clear interrupt flag in case bytes are available in RX buffer!
+        //io->u->STATUS |= USART_RXCIF_bm;
     }
 }
 
