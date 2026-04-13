@@ -47,7 +47,7 @@ struct adcChanBuffer_s {
 /*! ADC voltage reference configuration enum */
 enum adcVoltageRef_e {
     ADC_VREF_INT1V  = ADC_REFSEL_INT1V_gc,  ///< Internal 1.00V reference
-    ADC_VREF_INTVCC = ADC_REFSEL_VCC_gc,    ///< Internal Vcc / 1.6
+    ADC_VREF_INTVCC = ADC_REFSEL_INTVCC_gc, ///< Internal Vcc / 1.6
     ADC_VREF_AREFA  = ADC_REFSEL_AREFA_gc,  ///< External PORTA AREF
     ADC_VREF_AREFB  = ADC_REFSEL_AREFB_gc,  ///< External PORTB AREF
 };
