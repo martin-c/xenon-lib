@@ -103,14 +103,19 @@ void debugInit(struct USART_struct *u,
                uint8_t baudctrlA,
                uint8_t baudctrlB) {
     
-    debugUsart = u;
-    // initialize USART
+    // initialize USART for TX-only async, then wire up the stdio FILE.
     usartInitAsyncTx(u, baudctrlA, baudctrlB);
-    // select appropriate putchar function
+    debugAttachStream(u, block);
+}
+
+void debugAttachStream(struct USART_struct *u,
+                       enum debugUsartBlock_e block) {
+
+    debugUsart = u;
     if (block == DEBUG_USART_BLOCK) {
-        fdev_setup_stream(debug, putchar_block, NULL,  _FDEV_SETUP_WRITE);
+        fdev_setup_stream(debug, putchar_block, NULL, _FDEV_SETUP_WRITE);
     } else {
-        fdev_setup_stream(debug, putchar_noblock, NULL,  _FDEV_SETUP_WRITE);
+        fdev_setup_stream(debug, putchar_noblock, NULL, _FDEV_SETUP_WRITE);
     }
 }
 

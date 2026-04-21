@@ -25,14 +25,22 @@
  *
  */
 
+/*! Core USART peripheral configuration and blocking IO.
+ *
+ *  This header covers the always-needed pieces: peripheral init
+ *  (async and SPI modes), enable/disable, flush, and blocking
+ *  SPI master IO. It has no dependency on the task scheduler or
+ *  any particular IO strategy.
+ *
+ *  For interrupt-driven buffered IO include `usart-buffered.h`.
+ *  For DMA-driven IO include `usart-dma.h`. Both are independent
+ *  of this file's blocking API and of each other.
+ */
 #pragma once
 
 #include <inttypes.h>
 #include <avr/io.h>
 #include <avr/pgmspace.h>
-#include "lib-config.h"
-#include "task-scheduler.h"
-#include "embedded-device.h"
 
 
 
@@ -47,64 +55,7 @@ enum usartDataOrder_e {
 /*! USART clock phase for SPI mode */
 enum usartClockPhase_e {
     USART_CP_LEADING_EDGE   = 0x00,             ///< Data valid on leading edge of clock signal.
-    USART_CP_TRAILING_EDGE  = 0x01 << 1,        ///< Data valid on tailing edge of clock signal.
-};
-
-/*! USART receive complete interrupt priority */
-enum usartRxCompleteInterrupt_e {
-    USART_RXC_INT_OFF   = USART_RXCINTLVL_OFF_gc,
-    USART_RXC_INT_LO    = USART_RXCINTLVL_LO_gc,
-    USART_RXC_INT_MED   = USART_RXCINTLVL_MED_gc,
-    USART_RXC_INT_HI    = USART_RXCINTLVL_HI_gc,
-};
-
-/*! USART transmit complete interrupt priority */
-enum usartTxCompleteInterrupt_e {
-    USART_TXC_INT_OFF       = USART_TXCINTLVL_OFF_gc,
-    USART_TXC_INT_LO        = USART_TXCINTLVL_LO_gc,
-    USART_TXC_INT_MED       = USART_TXCINTLVL_MED_gc,
-    USART_TXC_INT_HI        = USART_TXCINTLVL_HI_gc,
-};
-
-/*! USART data register empty interrupt priority */
-enum usartDataRegisterEmptyInterrupt_e {
-    USART_DRE_INT_OFF    = USART_DREINTLVL_OFF_gc,
-    USART_DRE_INT_LO     = USART_DREINTLVL_LO_gc,
-    USART_DRE_INT_MED    = USART_DREINTLVL_MED_gc,
-    USART_DRE_INT_HI     = USART_DREINTLVL_HI_gc,
-};
-
-/*! A USART buffer struct, should not be modified externally. Contents
- *  subject to change.
- */
-struct usartBuffer_s {
-    uint8_t *b;
-    uint8_t count;
-    uint8_t len;
-};
-
-/*! A USART ISR IO data struct, should not be modified externally. Contents
- *  subject to change.
- */
-struct usartIo_s {
-    struct USART_struct *u;
-    uint8_t (*txComp)(device_t *);
-    uint8_t (*rxComp)(device_t *);
-    void (*txcIsr)(void);
-    union {
-        struct {
-            volatile struct usartBuffer_s tx;
-            volatile struct usartBuffer_s rx;
-            enum usartRxCompleteInterrupt_e rxc;
-            enum usartDataRegisterEmptyInterrupt_e dre;
-        } isr;
-        struct {
-            struct DMA_CH_struct *txD;
-            struct DMA_CH_struct *rxD;
-            uint8_t txBytes;
-            uint8_t rxBytes;
-        } dma;
-    };
+    USART_CP_TRAILING_EDGE  = 0x01 << 1,        ///< Data valid on trailing edge of clock signal.
 };
 
 
@@ -137,44 +88,3 @@ void usartEnableTx(struct USART_struct *u);
 void usartDisable(struct USART_struct *u);
 void usartSpiIo(struct USART_struct *u, uint8_t *tx, uint8_t *rx, uint8_t count);
 void usartSpiIo_P(struct USART_struct *u, const uint8_t *tx, uint8_t *rx, uint8_t count);
-#ifdef USART_LIB_ISR_HANDLER
-void usartRegisterTxcIsr(struct usartIo_s *io,
-                         enum usartTxCompleteInterrupt_e txc,
-                         void(*isr)(void));
-void usartInitIsrIo(struct USART_struct *u, 
-        struct usartIo_s *io, 
-        enum usartRxCompleteInterrupt_e rxc, 
-        enum usartDataRegisterEmptyInterrupt_e dre);
-void usartIsrIo(struct usartIo_s *io,
-        const uint8_t *tx,
-        uint8_t *rx,
-        uint8_t count,
-        task_ptr cb);
-void usartIsrTx(struct usartIo_s *io,
-        const uint8_t *tx,
-        uint8_t count,
-        task_ptr cb);
-void usartIsrRx(struct usartIo_s *io,
-        uint8_t *rx,
-        uint8_t count,
-        task_ptr cb);
-void usartIsrRxGetBytes(struct usartIo_s *io, uint8_t *count);
-#endif /* USART_LIB_ISR_HANDLER */
-void usartInitDmaIo(struct USART_struct *u, 
-        struct usartIo_s *io,
-        struct DMA_CH_struct *txDma,
-        struct DMA_CH_struct *rxDma);
-void usartDmaIo(struct usartIo_s *io,
-        const uint8_t *tx,
-        volatile uint8_t *rx,
-        uint8_t count,
-        task_ptr cb);
-void usartDmaTx(struct usartIo_s *io,
-        const uint8_t *tx,
-        uint8_t count,
-        task_ptr cb);
-void usartDmaRx(struct usartIo_s *io,
-        volatile uint8_t *rx,
-        uint8_t count,
-        task_ptr cb);
-

@@ -57,3 +57,14 @@ void debugInit(struct USART_struct *u,
                uint8_t baudctrlA,
                uint8_t baudctrlB);
 
+/*! Attach the `debug` stdio stream to an already-configured USART.
+ *  Use this when another module owns the
+ *  USART init -- call `usartInitAsync()` yourself first and then
+ *  `debugAttachStream()` to get `printf`/`fprintf(debug, ...)` working
+ *  on the same peripheral.
+ *  \param u     Pointer to USART already configured for TX
+ *  \param block Blocking vs non-blocking putchar
+ */
+void debugAttachStream(struct USART_struct *u,
+                       enum debugUsartBlock_e block);
+
